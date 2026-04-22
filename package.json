@@ -1,0 +1,23 @@
+{
+  "name": "kubekitchen",
+  "version": "1.0.0",
+  "main": "seed.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PruthviGBhat/Kubekitchen.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PruthviGBhat/Kubekitchen/issues"
+  },
+  "homepage": "https://github.com/PruthviGBhat/Kubekitchen#readme",
+  "dependencies": {
+    "mongoose": "^9.5.0"
+  },
+  "description": ""
+}
