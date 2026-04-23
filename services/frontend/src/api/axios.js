@@ -1,6 +1,4 @@
-// All requests go to same origin (nginx proxies them)
-// No hardcoded URLs - works from any IP
-
+// Exports both naming conventions to avoid breaking existing imports
 const API_BASE = {
   auth: '/api/auth',
   restaurants: '/api/restaurants',
@@ -45,7 +43,22 @@ class ApiClient {
   delete(endpoint, auth = true) { return this.request('DELETE', endpoint, null, auth); }
 }
 
+// lowercase exports (new standard)
 export const authApi = new ApiClient(API_BASE.auth);
 export const restaurantApi = new ApiClient(API_BASE.restaurants);
 export const menuApi = new ApiClient(API_BASE.menu);
 export const orderApi = new ApiClient(API_BASE.orders);
+
+// UPPERCASE aliases - for any existing files that import authAPI, restaurantAPI etc.
+export const authAPI = authApi;
+export const restaurantAPI = restaurantApi;
+export const menuAPI = menuApi;
+export const orderAPI = orderApi;
+
+// Default export as object - covers any other import pattern
+export default {
+  auth: authApi,
+  restaurant: restaurantApi,
+  menu: menuApi,
+  order: orderApi,
+};
