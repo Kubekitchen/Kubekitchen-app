@@ -34,7 +34,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: auth-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-auth-service:prod-latest
+          image: secretpower/kubekitchen-auth-service:prod-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4001
@@ -134,7 +134,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: restaurant-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-restaurant-service:prod-latest
+          image: secretpower/kubekitchen-restaurant-service:prod-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4002
@@ -227,7 +227,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: menu-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-menu-service:prod-latest
+          image: secretpower/kubekitchen-menu-service:prod-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4003
@@ -320,7 +320,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: order-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-order-service:prod-latest
+          image: secretpower/kubekitchen-order-service:prod-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4004
@@ -418,7 +418,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: frontend
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-frontend:prod-latest
+          image: secretpower/kubekitchen-frontend:prod-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80

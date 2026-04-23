@@ -29,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: auth-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-auth-service:dev-latest
+          image: secretpower/kubekitchen-auth:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4001
@@ -124,7 +124,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: restaurant-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-restaurant-service:dev-latest
+          image: secretpower/kubekitchen-restaurant:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4002
@@ -214,7 +214,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: menu-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-menu-service:dev-latest
+          image: secretpower/kubekitchen-menu:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4003
@@ -304,7 +304,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: order-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-order-service:dev-latest
+          image: secretpower/kubekitchen-order:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4004
@@ -367,6 +367,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 10
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -399,10 +400,10 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: frontend
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-frontend:dev-latest
+          image: secretpower/kubekitchen-frontend:dev-latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - containerPort: 8080          # ← changed from 80
               name: http
           resources:
             requests:
@@ -414,7 +415,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080                  # ← changed from 80
             initialDelaySeconds: 15
             periodSeconds: 15
             timeoutSeconds: 5
@@ -423,7 +424,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
@@ -432,7 +433,7 @@ spec:
           startupProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5
             failureThreshold: 10
