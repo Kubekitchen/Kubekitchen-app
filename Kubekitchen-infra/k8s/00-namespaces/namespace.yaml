@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubekitchen-dev
+  labels:
+    project: kubekitchen
+    environment: dev
+    kubernetes.io/metadata.name: kubekitchen-dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubekitchen-prod
+  labels:
+    project: kubekitchen
+    environment: prod
+    kubernetes.io/metadata.name: kubekitchen-prod
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubekitchen-gateway
+  labels:
+    project: kubekitchen
+    component: gateway
+    kubernetes.io/metadata.name: kubekitchen-gateway

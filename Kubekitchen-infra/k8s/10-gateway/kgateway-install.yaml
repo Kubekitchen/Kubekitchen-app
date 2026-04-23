@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kgateway-install-notes
+  namespace: kubekitchen-gateway
+data:
+  instructions: |
+    Run this command to install kgateway before applying gateway.yaml:
+    kubectl apply -f https://github.com/kgateway-dev/kgateway/releases/download/v2.0.0/install.yaml

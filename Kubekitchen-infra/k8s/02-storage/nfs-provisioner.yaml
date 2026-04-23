@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client-provisioner
+  namespace: kube-system
+  labels:
+    app: nfs-client-provisioner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nfs-client-provisioner
+    spec:
+      serviceAccountName: nfs-client-provisioner
+      containers:
+        - name: nfs-client-provisioner
+          image: registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: kubekitchen.io/nfs
+            - name: NFS_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: nfs-config
+                  key: NFS_SERVER_IP
+            - name: NFS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: nfs-config
+                  key: NFS_PATH
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            server: "NFS_SERVER_PRIVATE_IP"
+            path: /mnt/kubekitchen-nfs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nfs-config
+  namespace: kube-system
+data:
+  NFS_SERVER_IP: "NFS_SERVER_PRIVATE_IP"
+  NFS_PATH: "/mnt/kubekitchen-nfs"
