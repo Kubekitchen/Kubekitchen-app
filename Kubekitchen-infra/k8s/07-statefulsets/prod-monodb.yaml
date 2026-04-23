@@ -1,0 +1,379 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb-auth
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-auth
+    tier: database
+    project: kubekitchen
+    environment: prod
+spec:
+  serviceName: mongodb-auth-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-auth
+  template:
+    metadata:
+      labels:
+        app: mongodb-auth
+        tier: database
+        project: kubekitchen
+        environment: prod
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mongodb
+          image: mongo:7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: authdb
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongodb-auth-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-auth-headless
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-auth
+    tier: database
+spec:
+  clusterIP: None
+  selector:
+    app: mongodb-auth
+  ports:
+    - port: 27017
+      targetPort: 27017
+      name: mongodb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb-restaurant
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-restaurant
+    tier: database
+    project: kubekitchen
+    environment: prod
+spec:
+  serviceName: mongodb-restaurant-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-restaurant
+  template:
+    metadata:
+      labels:
+        app: mongodb-restaurant
+        tier: database
+        project: kubekitchen
+        environment: prod
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mongodb
+          image: mongo:7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: restaurantdb
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongodb-restaurant-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-restaurant-headless
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-restaurant
+    tier: database
+spec:
+  clusterIP: None
+  selector:
+    app: mongodb-restaurant
+  ports:
+    - port: 27017
+      targetPort: 27017
+      name: mongodb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb-menu
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-menu
+    tier: database
+    project: kubekitchen
+    environment: prod
+spec:
+  serviceName: mongodb-menu-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-menu
+  template:
+    metadata:
+      labels:
+        app: mongodb-menu
+        tier: database
+        project: kubekitchen
+        environment: prod
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mongodb
+          image: mongo:7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: menudb
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongodb-menu-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-menu-headless
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-menu
+    tier: database
+spec:
+  clusterIP: None
+  selector:
+    app: mongodb-menu
+  ports:
+    - port: 27017
+      targetPort: 27017
+      name: mongodb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb-order
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-order
+    tier: database
+    project: kubekitchen
+    environment: prod
+spec:
+  serviceName: mongodb-order-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-order
+  template:
+    metadata:
+      labels:
+        app: mongodb-order
+        tier: database
+        project: kubekitchen
+        environment: prod
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mongodb
+          image: mongo:7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: orderdb
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongodb-order-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-order-headless
+  namespace: kubekitchen-prod
+  labels:
+    app: mongodb-order
+    tier: database
+spec:
+  clusterIP: None
+  selector:
+    app: mongodb-order
+  ports:
+    - port: 27017
+      targetPort: 27017
+      name: mongodb
