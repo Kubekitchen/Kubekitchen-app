@@ -1,0 +1,438 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: kubekitchen-dev
+  labels:
+    app: auth-service
+    tier: backend
+    project: kubekitchen
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        tier: backend
+        project: kubekitchen
+        environment: dev
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: auth-service
+          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-auth-service:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4001
+              name: http
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: AUTH_PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: NODE_ENV
+            - name: JWT_EXPIRES_IN
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: JWT_EXPIRES_IN
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: MONGO_AUTH_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-service
+  namespace: kubekitchen-dev
+  labels:
+    app: restaurant-service
+    tier: backend
+    project: kubekitchen
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restaurant-service
+  template:
+    metadata:
+      labels:
+        app: restaurant-service
+        tier: backend
+        project: kubekitchen
+        environment: dev
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: restaurant-service
+          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-restaurant-service:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4002
+              name: http
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: RESTAURANT_PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: NODE_ENV
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: MONGO_RESTAURANT_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4002
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 4002
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menu-service
+  namespace: kubekitchen-dev
+  labels:
+    app: menu-service
+    tier: backend
+    project: kubekitchen
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: menu-service
+  template:
+    metadata:
+      labels:
+        app: menu-service
+        tier: backend
+        project: kubekitchen
+        environment: dev
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: menu-service
+          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-menu-service:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4003
+              name: http
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: MENU_PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: NODE_ENV
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: MONGO_MENU_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4003
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 4003
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: kubekitchen-dev
+  labels:
+    app: order-service
+    tier: backend
+    project: kubekitchen
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        tier: backend
+        project: kubekitchen
+        environment: dev
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: order-service
+          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-order-service:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4004
+              name: http
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: ORDER_PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: NODE_ENV
+            - name: MENU_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: kubekitchen-config
+                  key: MENU_SERVICE_URL
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: MONGO_ORDER_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kubekitchen-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4004
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 4004
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: kubekitchen-dev
+  labels:
+    app: frontend
+    tier: frontend
+    project: kubekitchen
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: frontend
+        project: kubekitchen
+        environment: dev
+    spec:
+      serviceAccountName: kubekitchen-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: frontend
+          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-frontend:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 10

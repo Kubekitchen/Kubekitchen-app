@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-auth-pvc
+  namespace: kubekitchen-dev
+  labels:
+    app: mongodb-auth
+    tier: database
+    environment: dev
+spec:
+  storageClassName: kubekitchen-nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-restaurant-pvc
+  namespace: kubekitchen-dev
+  labels:
+    app: mongodb-restaurant
+    tier: database
+    environment: dev
+spec:
+  storageClassName: kubekitchen-nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-menu-pvc
+  namespace: kubekitchen-dev
+  labels:
+    app: mongodb-menu
+    tier: database
+    environment: dev
+spec:
+  storageClassName: kubekitchen-nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-order-pvc
+  namespace: kubekitchen-dev
+  labels:
+    app: mongodb-order
+    tier: database
+    environment: dev
+spec:
+  storageClassName: kubekitchen-nfs
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
