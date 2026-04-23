@@ -29,5 +29,5 @@ RUN mkdir -p /var/cache/nginx/client_temp \
     && chown appuser:appgroup /var/run/nginx.pid
 
 USER appuser
-EXPOSE 80
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
