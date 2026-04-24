@@ -10,7 +10,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: kubekitchen-gateway
-  namespace: kubekitchen-gateway
+  namespace: kubekitchen-dev
   labels:
     project: kubekitchen
     component: gateway
@@ -22,7 +22,7 @@ spec:
     port: 8080
     allowedRoutes:
       namespaces:
-        from: All
+        from: Same
 
 ---
 # ─── HTTPRoute — All Microservice Routes ─────────────────
@@ -36,7 +36,6 @@ metadata:
 spec:
   parentRefs:
   - name: kubekitchen-gateway
-    namespace: kubekitchen-gateway
 
   rules:
   # ─── Auth Service (/api/auth) ────────────────────────────

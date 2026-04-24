@@ -8,7 +8,6 @@ metadata:
 spec:
   parentRefs:
     - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
   rules:
     - matches:
         - path:
@@ -29,7 +28,6 @@ metadata:
 spec:
   parentRefs:
     - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
   rules:
     - matches:
         - path:
@@ -50,7 +48,6 @@ metadata:
 spec:
   parentRefs:
     - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
   rules:
     - matches:
         - path:
@@ -71,7 +68,6 @@ metadata:
 spec:
   parentRefs:
     - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
   rules:
     - matches:
         - path:
@@ -92,7 +88,6 @@ metadata:
 spec:
   parentRefs:
     - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
   rules:
     - matches:
         - path:
