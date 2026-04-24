@@ -69,10 +69,17 @@ class ApiClient {
   }
 }
 
+// Lowercase (preferred)
 export const authApi = new ApiClient(API_BASE.auth);
 export const restaurantApi = new ApiClient(API_BASE.restaurants);
 export const menuApi = new ApiClient(API_BASE.menu);
 export const orderApi = new ApiClient(API_BASE.orders);
+
+// UPPERCASE (for backward compatibility with existing imports)
+export const authAPI = authApi;
+export const restaurantAPI = restaurantApi;
+export const menuAPI = menuApi;
+export const orderAPI = orderApi;
 
 export default {
   auth: authApi,
