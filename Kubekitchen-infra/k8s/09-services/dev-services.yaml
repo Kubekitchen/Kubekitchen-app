@@ -83,7 +83,7 @@ metadata:
     app: frontend
     project: kubekitchen
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: frontend
   ports:
@@ -91,3 +91,4 @@ spec:
       targetPort: 8080
       protocol: TCP
       name: http
+      nodePort: 30080
