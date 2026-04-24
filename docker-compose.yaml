@@ -94,11 +94,11 @@ services:
         condition: service_healthy
     networks:
       - kubekitchen-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4001/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD", "wget", "-qO-", "http://localhost:4001/health"]
+    #   interval: 15s
+    #   timeout: 5s
+    #   retries: 3
 
   restaurant-service:
     build:
