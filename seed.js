@@ -33,7 +33,7 @@ const menuSchema = new mongoose.Schema({
 async function seed() {
   try {
     console.log("Connecting to databases...");
-    
+
     const rConn = await mongoose.createConnection(MONGO_URIS.restaurant).asPromise();
     const mConn = await mongoose.createConnection(MONGO_URIS.menu).asPromise();
 
@@ -117,50 +117,51 @@ async function seed() {
 
     console.log("Seeding menu items...");
     const menuItems = [];
-    
+
+    // Pizzeria Napoli
     // Pizzeria Napoli
     menuItems.push(
-      { restaurant: restaurants[0]._id.toString(), name: "Margherita Pizza", description: "Classic tomato, mozzarella, and basil", price: 14.99, category: "Pizza", isAvailable: true },
-      { restaurant: restaurants[0]._id.toString(), name: "Pepperoni Pizza", description: "Spicy pepperoni with extra cheese", price: 16.99, category: "Pizza", isAvailable: true },
-      { restaurant: restaurants[0]._id.toString(), name: "Quattro Formaggi", description: "Four cheese pizza for cheese lovers", price: 17.99, category: "Pizza", isAvailable: true },
-      { restaurant: restaurants[0]._id.toString(), name: "Caprese Salad", description: "Fresh tomatoes, mozzarella, and basil", price: 8.99, category: "Salad", isAvailable: true },
-      { restaurant: restaurants[0]._id.toString(), name: "Tiramisu", description: "Classic Italian dessert", price: 6.99, category: "Dessert", isAvailable: true },
+      { restaurantId: restaurants[0]._id.toString(), name: "Margherita Pizza", description: "Classic tomato, mozzarella, and basil", price: 14.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[0]._id.toString(), name: "Pepperoni Pizza", description: "Spicy pepperoni with extra cheese", price: 16.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[0]._id.toString(), name: "Quattro Formaggi", description: "Four cheese pizza for cheese lovers", price: 17.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[0]._id.toString(), name: "Caprese Salad", description: "Fresh tomatoes, mozzarella, and basil", price: 8.99, category: "starter", isAvailable: true },
+      { restaurantId: restaurants[0]._id.toString(), name: "Tiramisu", description: "Classic Italian dessert", price: 6.99, category: "dessert", isAvailable: true },
     );
 
     // Tokyo Ramen
     menuItems.push(
-      { restaurant: restaurants[1]._id.toString(), name: "Tonkotsu Ramen", description: "Rich pork bone broth with chashu", price: 15.99, category: "Ramen", isAvailable: true },
-      { restaurant: restaurants[1]._id.toString(), name: "Miso Ramen", description: "Savory miso broth with veggies", price: 14.99, category: "Ramen", isAvailable: true },
-      { restaurant: restaurants[1]._id.toString(), name: "Gyoza", description: "Pan-fried pork dumplings", price: 7.99, category: "Appetizer", isAvailable: true },
-      { restaurant: restaurants[1]._id.toString(), name: "Edamame", description: "Steamed soybeans with sea salt", price: 5.99, category: "Appetizer", isAvailable: true },
-      { restaurant: restaurants[1]._id.toString(), name: "Mochi Ice Cream", description: "Japanese rice cake with ice cream", price: 6.50, category: "Dessert", isAvailable: true },
+      { restaurantId: restaurants[1]._id.toString(), name: "Tonkotsu Ramen", description: "Rich pork bone broth with chashu", price: 15.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[1]._id.toString(), name: "Miso Ramen", description: "Savory miso broth with veggies", price: 14.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[1]._id.toString(), name: "Gyoza", description: "Pan-fried pork dumplings", price: 7.99, category: "starter", isAvailable: true },
+      { restaurantId: restaurants[1]._id.toString(), name: "Edamame", description: "Steamed soybeans with sea salt", price: 5.99, category: "starter", isAvailable: true },
+      { restaurantId: restaurants[1]._id.toString(), name: "Mochi Ice Cream", description: "Japanese rice cake with ice cream", price: 6.50, category: "dessert", isAvailable: true },
     );
 
     // Casa Mexicana
     menuItems.push(
-      { restaurant: restaurants[2]._id.toString(), name: "Beef Tacos", description: "Three soft tacos with seasoned beef", price: 11.99, category: "Tacos", isAvailable: true },
-      { restaurant: restaurants[2]._id.toString(), name: "Chicken Burrito", description: "Grilled chicken with rice and beans", price: 13.99, category: "Burrito", isAvailable: true },
-      { restaurant: restaurants[2]._id.toString(), name: "Guacamole & Chips", description: "Fresh avocado dip with tortilla chips", price: 8.99, category: "Appetizer", isAvailable: true },
-      { restaurant: restaurants[2]._id.toString(), name: "Quesadilla", description: "Cheese quesadilla with sour cream", price: 10.99, category: "Main", isAvailable: true },
-      { restaurant: restaurants[2]._id.toString(), name: "Churros", description: "Fried dough with cinnamon sugar", price: 5.99, category: "Dessert", isAvailable: true },
+      { restaurantId: restaurants[2]._id.toString(), name: "Beef Tacos", description: "Three soft tacos with seasoned beef", price: 11.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[2]._id.toString(), name: "Chicken Burrito", description: "Grilled chicken with rice and beans", price: 13.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[2]._id.toString(), name: "Guacamole & Chips", description: "Fresh avocado dip with tortilla chips", price: 8.99, category: "starter", isAvailable: true },
+      { restaurantId: restaurants[2]._id.toString(), name: "Quesadilla", description: "Cheese quesadilla with sour cream", price: 10.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[2]._id.toString(), name: "Churros", description: "Fried dough with cinnamon sugar", price: 5.99, category: "dessert", isAvailable: true },
     );
 
     // Spice Garden India
     menuItems.push(
-      { restaurant: restaurants[3]._id.toString(), name: "Butter Chicken", description: "Creamy tomato curry with tender chicken", price: 16.99, category: "Curry", isAvailable: true },
-      { restaurant: restaurants[3]._id.toString(), name: "Palak Paneer", description: "Spinach curry with cottage cheese", price: 14.99, category: "Curry", isAvailable: true },
-      { restaurant: restaurants[3]._id.toString(), name: "Samosa", description: "Crispy pastry filled with spiced potatoes", price: 6.99, category: "Appetizer", isAvailable: true },
-      { restaurant: restaurants[3]._id.toString(), name: "Naan Bread", description: "Oven-baked flatbread", price: 3.99, category: "Bread", isAvailable: true },
-      { restaurant: restaurants[3]._id.toString(), name: "Gulab Jamun", description: "Sweet milk dumplings in syrup", price: 5.99, category: "Dessert", isAvailable: true },
+      { restaurantId: restaurants[3]._id.toString(), name: "Butter Chicken", description: "Creamy tomato curry with tender chicken", price: 16.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[3]._id.toString(), name: "Palak Paneer", description: "Spinach curry with cottage cheese", price: 14.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[3]._id.toString(), name: "Samosa", description: "Crispy pastry filled with spiced potatoes", price: 6.99, category: "starter", isAvailable: true },
+      { restaurantId: restaurants[3]._id.toString(), name: "Naan Bread", description: "Oven-baked flatbread", price: 3.99, category: "side", isAvailable: true },
+      { restaurantId: restaurants[3]._id.toString(), name: "Gulab Jamun", description: "Sweet milk dumplings in syrup", price: 5.99, category: "dessert", isAvailable: true },
     );
 
     // Burger Boulevard
     menuItems.push(
-      { restaurant: restaurants[4]._id.toString(), name: "Classic Cheeseburger", description: "Beef patty with cheddar cheese", price: 12.99, category: "Burger", isAvailable: true },
-      { restaurant: restaurants[4]._id.toString(), name: "Bacon BBQ Burger", description: "Bacon, BBQ sauce, and onion rings", price: 14.99, category: "Burger", isAvailable: true },
-      { restaurant: restaurants[4]._id.toString(), name: "Veggie Burger", description: "Plant-based patty with avocado", price: 13.99, category: "Burger", isAvailable: true },
-      { restaurant: restaurants[4]._id.toString(), name: "French Fries", description: "Crispy golden fries", price: 4.99, category: "Side", isAvailable: true },
-      { restaurant: restaurants[4]._id.toString(), name: "Milkshake", description: "Chocolate, vanilla, or strawberry", price: 5.99, category: "Beverage", isAvailable: true },
+      { restaurantId: restaurants[4]._id.toString(), name: "Classic Cheeseburger", description: "Beef patty with cheddar cheese", price: 12.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[4]._id.toString(), name: "Bacon BBQ Burger", description: "Bacon, BBQ sauce, and onion rings", price: 14.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[4]._id.toString(), name: "Veggie Burger", description: "Plant-based patty with avocado", price: 13.99, category: "main", isAvailable: true },
+      { restaurantId: restaurants[4]._id.toString(), name: "French Fries", description: "Crispy golden fries", price: 4.99, category: "side", isAvailable: true },
+      { restaurantId: restaurants[4]._id.toString(), name: "Milkshake", description: "Chocolate, vanilla, or strawberry", price: 5.99, category: "beverage", isAvailable: true },
     );
 
     await Menu.insertMany(menuItems);
@@ -168,7 +169,7 @@ async function seed() {
 
     await rConn.close();
     await mConn.close();
-    
+
     console.log("\n🎉 Seeding complete!");
     process.exit(0);
   } catch (err) {

@@ -3,10 +3,6 @@ services:
     image: mongo:7
     container_name: mongo-auth
     restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_DATABASE: authdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -17,10 +13,6 @@ services:
     image: mongo:7
     container_name: mongo-restaurant
     restart: always
-    ports:
-      - "27018:27017"
-    environment:
-      MONGO_INITDB_DATABASE: restaurantdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -31,10 +23,6 @@ services:
     image: mongo:7
     container_name: mongo-menu
     restart: always
-    ports:
-      - "27019:27017"
-    environment:
-      MONGO_INITDB_DATABASE: menudb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -45,10 +33,6 @@ services:
     image: mongo:7
     container_name: mongo-order
     restart: always
-    ports:
-      - "27020:27017"
-    environment:
-      MONGO_INITDB_DATABASE: orderdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -61,11 +45,8 @@ services:
       dockerfile: Dockerfile
     container_name: auth-service
     restart: always
-    ports:
-      - "4001:4001"
     environment:
       PORT: 4001
-      NODE_ENV: production
       MONGO_URI: mongodb://mongo-auth:27017/authdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
       JWT_EXPIRES_IN: 7d
@@ -79,11 +60,8 @@ services:
       dockerfile: Dockerfile
     container_name: restaurant-service
     restart: always
-    ports:
-      - "4002:4002"
     environment:
       PORT: 4002
-      NODE_ENV: production
       MONGO_URI: mongodb://mongo-restaurant:27017/restaurantdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
     depends_on:
@@ -96,11 +74,8 @@ services:
       dockerfile: Dockerfile
     container_name: menu-service
     restart: always
-    ports:
-      - "4003:4003"
     environment:
       PORT: 4003
-      NODE_ENV: production
       MONGO_URI: mongodb://mongo-menu:27017/menudb
       JWT_SECRET: supersecretjwtkey123kubekitchen
     depends_on:
@@ -113,14 +88,11 @@ services:
       dockerfile: Dockerfile
     container_name: order-service
     restart: always
-    ports:
-      - "4004:4004"
     environment:
       PORT: 4004
-      NODE_ENV: production
-      MENU_SERVICE_URL: http://menu-service:4003
       MONGO_URI: mongodb://mongo-order:27017/orderdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
+      MENU_SERVICE_URL: http://menu-service:4003
     depends_on:
       mongo-order:
         condition: service_healthy
@@ -133,8 +105,6 @@ services:
     restart: always
     ports:
       - "3000:8080"
-    environment:
-      NODE_ENV: production
     depends_on:
       - auth-service
       - restaurant-service
