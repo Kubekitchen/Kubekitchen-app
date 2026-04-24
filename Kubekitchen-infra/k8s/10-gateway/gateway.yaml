@@ -1,37 +1,14 @@
 apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: kubekitchen-gwclass
-  labels:
-    project: kubekitchen
-spec:
-  controllerName: kgateway.dev/kgateway
----
-apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: kubekitchen-gateway
   namespace: kubekitchen-gateway
-  labels:
-    project: kubekitchen
 spec:
-  gatewayClassName: kubekitchen-gwclass
+  gatewayClassName: kgateway-class
   listeners:
-    - name: http-dev
-      protocol: HTTP
-      port: 8082
-      allowedRoutes:
-        namespaces:
-          from: Selector
-          selector:
-            matchLabels:
-              environment: dev
-    - name: http-prod
+    - name: http
       protocol: HTTP
       port: 80
       allowedRoutes:
         namespaces:
-          from: Selector
-          selector:
-            matchLabels:
-              environment: prod
+          from: All
