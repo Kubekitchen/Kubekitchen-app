@@ -1,79 +1,39 @@
-version: "3.8"
-
-networks:
-  kubekitchen-net:
-    driver: bridge
-
-volumes:
-  mongo-auth-data:
-  mongo-restaurant-data:
-  mongo-order-data:
-  mongo-menu-data:
-
 services:
   mongo-auth:
     image: mongo:7
     container_name: mongo-auth
     restart: always
-    volumes:
-      - mongo-auth-data:/data/db
-    networks:
-      - kubekitchen-net
+    ports:
+      - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: authdb
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   mongo-restaurant:
     image: mongo:7
     container_name: mongo-restaurant
     restart: always
-    volumes:
-      - mongo-restaurant-data:/data/db
-    networks:
-      - kubekitchen-net
+    ports:
+      - "27018:27017"
     environment:
       MONGO_INITDB_DATABASE: restaurantdb
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  mongo-order:
-    image: mongo:7
-    container_name: mongo-order
-    restart: always
-    volumes:
-      - mongo-order-data:/data/db
-    networks:
-      - kubekitchen-net
-    environment:
-      MONGO_INITDB_DATABASE: orderdb
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   mongo-menu:
     image: mongo:7
     container_name: mongo-menu
     restart: always
-    volumes:
-      - mongo-menu-data:/data/db
-    networks:
-      - kubekitchen-net
+    ports:
+      - "27019:27017"
     environment:
       MONGO_INITDB_DATABASE: menudb
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
+  mongo-order:
+    image: mongo:7
+    container_name: mongo-order
+    restart: always
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_DATABASE: orderdb
 
   auth-service:
     build:
@@ -85,20 +45,12 @@ services:
       - "4001:4001"
     environment:
       PORT: 4001
+      NODE_ENV: production
       MONGO_URI: mongodb://mongo-auth:27017/authdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
       JWT_EXPIRES_IN: 7d
-      NODE_ENV: production
     depends_on:
-      mongo-auth:
-        condition: service_healthy
-    networks:
-      - kubekitchen-net
-    # healthcheck:
-    #   test: ["CMD", "wget", "-qO-", "http://localhost:4001/health"]
-    #   interval: 15s
-    #   timeout: 5s
-    #   retries: 3
+      - mongo-auth
 
   restaurant-service:
     build:
@@ -110,19 +62,11 @@ services:
       - "4002:4002"
     environment:
       PORT: 4002
+      NODE_ENV: production
       MONGO_URI: mongodb://mongo-restaurant:27017/restaurantdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
-      NODE_ENV: production
     depends_on:
-      mongo-restaurant:
-        condition: service_healthy
-    networks:
-      - kubekitchen-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4002/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
+      - mongo-restaurant
 
   menu-service:
     build:
@@ -134,19 +78,11 @@ services:
       - "4003:4003"
     environment:
       PORT: 4003
+      NODE_ENV: production
       MONGO_URI: mongodb://mongo-menu:27017/menudb
       JWT_SECRET: supersecretjwtkey123kubekitchen
-      NODE_ENV: production
     depends_on:
-      mongo-menu:
-        condition: service_healthy
-    networks:
-      - kubekitchen-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4003/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
+      - mongo-menu
 
   order-service:
     build:
@@ -158,19 +94,12 @@ services:
       - "4004:4004"
     environment:
       PORT: 4004
+      NODE_ENV: production
+      MENU_SERVICE_URL: http://menu-service:4003
       MONGO_URI: mongodb://mongo-order:27017/orderdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
-      NODE_ENV: production
     depends_on:
-      mongo-order:
-        condition: service_healthy
-    networks:
-      - kubekitchen-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4004/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
+      - mongo-order
 
   frontend:
     build:
@@ -187,10 +116,3 @@ services:
       - restaurant-service
       - menu-service
       - order-service
-    networks:
-      - kubekitchen-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
