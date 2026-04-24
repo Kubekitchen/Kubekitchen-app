@@ -15,7 +15,7 @@ metadata:
     project: kubekitchen
     component: gateway
 spec:
-  gatewayClassName: kgateway-class
+  gatewayClassName: contour
   listeners:
   - name: http
     protocol: HTTP
