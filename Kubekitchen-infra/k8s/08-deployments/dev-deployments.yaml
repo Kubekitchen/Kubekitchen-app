@@ -403,7 +403,7 @@ spec:
           image: secretpower/kubekitchen-frontend:dev-latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080          # ← changed from 80
+            - containerPort: 8080
               name: http
           resources:
             requests:
@@ -414,8 +414,8 @@ spec:
               cpu: "200m"
           livenessProbe:
             httpGet:
-              path: /
-              port: 8080                  # ← changed from 80
+              path: /health
+              port: 8080
             initialDelaySeconds: 15
             periodSeconds: 15
             timeoutSeconds: 5
@@ -423,7 +423,7 @@ spec:
             successThreshold: 1
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
@@ -432,7 +432,7 @@ spec:
             successThreshold: 1
           startupProbe:
             httpGet:
-              path: /
+              path: /health
               port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5

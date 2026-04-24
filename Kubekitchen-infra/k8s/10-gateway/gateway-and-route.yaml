@@ -1,0 +1,96 @@
+# ════════════════════════════════════════════════════════════
+# KubeKitchen — KGATEWAY (Gateway + HTTPRoute)
+# ════════════════════════════════════════════════════════════
+# Gateway API-based routing for all KubeKitchen microservices.
+# KGATEWAY controller must be installed before applying this.
+# ════════════════════════════════════════════════════════════
+
+# ─── Gateway ─────────────────────────────────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: kubekitchen-gateway
+  namespace: kubekitchen-gateway
+  labels:
+    project: kubekitchen
+    component: gateway
+spec:
+  gatewayClassName: kgateway-class
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 8080
+    allowedRoutes:
+      namespaces:
+        from: Same
+
+---
+# ─── HTTPRoute — All Microservice Routes ─────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kubekitchen-routes
+  namespace: kubekitchen-dev
+  labels:
+    project: kubekitchen
+spec:
+  parentRefs:
+  - name: kubekitchen-gateway
+    namespace: kubekitchen-gateway
+
+  rules:
+  # ─── Auth Service (/api/auth) ────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/auth
+    backendRefs:
+    - name: auth-service
+      namespace: kubekitchen-dev
+      port: 4001
+      weight: 1
+
+  # ─── Menu Service (/api/menu) ────────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/menu
+    backendRefs:
+    - name: menu-service
+      namespace: kubekitchen-dev
+      port: 4003
+      weight: 1
+
+  # ─── Restaurant Service (/api/restaurants) ──────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/restaurants
+    backendRefs:
+    - name: restaurant-service
+      namespace: kubekitchen-dev
+      port: 4002
+      weight: 1
+
+  # ─── Order Service (/api/orders) ─────────────────────────
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/orders
+    backendRefs:
+    - name: order-service
+      namespace: kubekitchen-dev
+      port: 4004
+      weight: 1
+
+  # ─── Frontend (catch-all /) ──────────────────────────────
+  # MUST be LAST so specific paths above match first
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: frontend
+      namespace: kubekitchen-dev
+      port: 80
+      weight: 1

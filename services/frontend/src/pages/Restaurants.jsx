@@ -19,7 +19,7 @@ const Restaurants = () => {
       const params = {};
       if (search) params.search = search;
       if (selectedCuisine !== "All") params.cuisine = selectedCuisine;
-      const { data } = await restaurantAPI.get("/api/restaurants", { params });
+      const { data } = await restaurantAPI.get("", params);
       setRestaurants(data.data);
     } catch {
       setRestaurants([]);

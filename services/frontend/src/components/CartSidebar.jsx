@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, ShoppingBag, MapPin } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { orderAPI } from "../api/axios";
+import { orderApi } from "../api/axios";
 import toast from "react-hot-toast";
 
 const CartSidebar = () => {
@@ -20,7 +20,7 @@ const CartSidebar = () => {
     }
     setPlacing(true);
     try {
-      await orderAPI.post("/api/orders", {
+      await orderApi.post("", {
         items: cartItems,
         restaurantId: restaurantInfo.id,
         restaurantName: restaurantInfo.name,

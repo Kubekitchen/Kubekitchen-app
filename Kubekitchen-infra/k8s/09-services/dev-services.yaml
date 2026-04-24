@@ -81,9 +81,9 @@ metadata:
   namespace: kubekitchen-dev
   labels:
     app: frontend
-    tier: frontend
     project: kubekitchen
 spec:
+  type: LoadBalancer
   selector:
     app: frontend
   ports:
@@ -91,4 +91,3 @@ spec:
       targetPort: 8080
       protocol: TCP
       name: http
-  type: ClusterIP

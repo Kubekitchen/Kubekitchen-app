@@ -20,8 +20,8 @@ const RestaurantMenu = () => {
     const load = async () => {
       try {
         const [rRes, mRes] = await Promise.all([
-          restaurantAPI.get(`/api/restaurants/${id}`),
-          menuAPI.get(`/api/menu/restaurant/${id}`),
+          restaurantAPI.get(`/${id}`),
+          menuAPI.get(`/restaurant/${id}`),
         ]);
         setRestaurant(rRes.data.data);
         setMenuItems(mRes.data.data);

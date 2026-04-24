@@ -27,13 +27,16 @@ class ApiClient {
   }
 
   async request(method, endpoint, data = null, auth = true) {
-    const url = `${this.baseURL}${endpoint}`;
+    let url = `${this.baseURL}${endpoint}`;
     const options = {
       method,
       headers: this.getHeaders(auth),
     };
 
-    if (data) {
+    if (method === 'GET' && data) {
+      const params = new URLSearchParams(data);
+      url += `?${params}`;
+    } else if (data) {
       options.body = JSON.stringify(data);
     }
 
