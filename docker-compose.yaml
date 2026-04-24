@@ -7,6 +7,11 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: authdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongo-restaurant:
     image: mongo:7
@@ -16,6 +21,11 @@ services:
       - "27018:27017"
     environment:
       MONGO_INITDB_DATABASE: restaurantdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongo-menu:
     image: mongo:7
@@ -25,6 +35,11 @@ services:
       - "27019:27017"
     environment:
       MONGO_INITDB_DATABASE: menudb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongo-order:
     image: mongo:7
@@ -34,6 +49,11 @@ services:
       - "27020:27017"
     environment:
       MONGO_INITDB_DATABASE: orderdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   auth-service:
     build:
@@ -50,7 +70,8 @@ services:
       JWT_SECRET: supersecretjwtkey123kubekitchen
       JWT_EXPIRES_IN: 7d
     depends_on:
-      - mongo-auth
+      mongo-auth:
+        condition: service_healthy
 
   restaurant-service:
     build:
@@ -66,7 +87,8 @@ services:
       MONGO_URI: mongodb://mongo-restaurant:27017/restaurantdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
     depends_on:
-      - mongo-restaurant
+      mongo-restaurant:
+        condition: service_healthy
 
   menu-service:
     build:
@@ -82,7 +104,8 @@ services:
       MONGO_URI: mongodb://mongo-menu:27017/menudb
       JWT_SECRET: supersecretjwtkey123kubekitchen
     depends_on:
-      - mongo-menu
+      mongo-menu:
+        condition: service_healthy
 
   order-service:
     build:
@@ -99,7 +122,8 @@ services:
       MONGO_URI: mongodb://mongo-order:27017/orderdb
       JWT_SECRET: supersecretjwtkey123kubekitchen
     depends_on:
-      - mongo-order
+      mongo-order:
+        condition: service_healthy
 
   frontend:
     build:
