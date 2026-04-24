@@ -2,7 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: kgateway-class
-  namespace: kgateway-system
+  # NO namespace - GatewayClass is cluster-scoped
 spec:
   controllerName: kgateway.dev/kgateway
   description: "KGATEWAY for KubeKitchen"

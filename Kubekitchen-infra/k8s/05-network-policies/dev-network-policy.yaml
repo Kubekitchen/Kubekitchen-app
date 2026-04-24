@@ -15,7 +15,7 @@ metadata:
   name: allow-dns-egress
   namespace: kubekitchen-dev
 spec:
-  podSelector: {}
+  podSelector: {}  # Applies to ALL pods including database
   policyTypes:
     - Egress
   egress:
@@ -43,16 +43,13 @@ spec:
     - Ingress
     - Egress
   ingress:
-    - ports:
-        - protocol: TCP
-          port: 80
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: kubekitchen-gateway
       ports:
         - protocol: TCP
-          port: 80
+          port: 8080   # Fixed: nginx port
   egress:
     - to:
         - podSelector:
@@ -127,11 +124,15 @@ spec:
       tier: database
   policyTypes:
     - Ingress
+    # No Egress needed - DNS handled by allow-dns-egress above
   ingress:
     - from:
         - podSelector:
             matchLabels:
               tier: backend
+        - podSelector:
+            matchLabels:
+              app: seeder   # Allow seeder job to access databases
       ports:
         - protocol: TCP
           port: 27017

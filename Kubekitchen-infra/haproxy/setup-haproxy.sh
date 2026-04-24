@@ -1,24 +1,34 @@
 #!/bin/bash
 set -e
 
-K8S_NODE_IP=${1:-"REPLACE_WITH_K8S_NODE_IP"}
+WORKER1_IP=${1:-"REPLACE_WITH_WORKER1_IP"}
+WORKER2_IP=${2:-"REPLACE_WITH_WORKER2_IP"}
 
 echo "=== Installing HAProxy ==="
 sudo apt-get update -y
 sudo apt-get install -y haproxy
 
-sed -i "s|K8S_NODE_IP|$K8S_NODE_IP|g" haproxy.cfg
+echo "=== Configuring HAProxy ==="
+# Replace placeholders with actual worker IPs
+sed -i "s|172.31.66.23|$WORKER1_IP|g" haproxy.cfg
+sed -i "s|WORKER2_IP|$WORKER2_IP|g" haproxy.cfg
 
 sudo cp haproxy.cfg /etc/haproxy/haproxy.cfg
+
+echo "=== Validating HAProxy config ==="
 sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 
+echo "=== Starting HAProxy ==="
 sudo systemctl restart haproxy
 sudo systemctl enable haproxy
 
 echo "=== HAProxy Status ==="
-sudo systemctl status haproxy
+sudo systemctl status haproxy --no-pager
 
+HAPROXY_IP=$(curl -s ifconfig.me)
 echo ""
-echo "HAProxy Stats: http://$(curl -s ifconfig.me):8404/stats"
-echo "Dev traffic:   http://$(curl -s ifconfig.me):8082"
-echo "Prod traffic:  http://$(curl -s ifconfig.me):80"
+echo "✅ HAProxy installed successfully!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 Stats Dashboard : http://$HAPROXY_IP:8404/stats"
+echo "🌐 Application URL : http://$HAPROXY_IP"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

@@ -3,14 +3,18 @@ kind: Service
 metadata:
   name: kgateway-service
   namespace: kubekitchen-gateway
+  labels:
+    project: kubekitchen
+    component: gateway
 spec:
   type: NodePort
   selector:
+    # kgateway (envoy proxy) pod labels
     app.kubernetes.io/name: kgateway
     app.kubernetes.io/component: proxy
   ports:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 80
-      nodePort: 30080
+      targetPort: 8080   # kgateway envoy listens on 8080 internally
+      nodePort: 30080    # HAProxy hits this

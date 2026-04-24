@@ -3,6 +3,9 @@ kind: Gateway
 metadata:
   name: kubekitchen-gateway
   namespace: kubekitchen-gateway
+  labels:
+    project: kubekitchen
+    component: gateway
 spec:
   gatewayClassName: kgateway-class
   listeners:
@@ -11,4 +14,4 @@ spec:
       port: 80
       allowedRoutes:
         namespaces:
-          from: All
+          from: All  # Allow routes from ALL namespaces (dev and prod)
