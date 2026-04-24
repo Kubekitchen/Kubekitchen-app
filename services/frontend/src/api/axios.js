@@ -1,8 +1,3 @@
-// All requests use relative paths - works everywhere!
-// Docker Compose: nginx proxies to backends
-// K8s: KGATEWAY proxies to backends
-// No hardcoded URLs!
-
 const API_BASE = {
   auth: '/api/auth',
   restaurants: '/api/restaurants',
@@ -19,9 +14,7 @@ class ApiClient {
     const headers = { 'Content-Type': 'application/json' };
     if (includeAuth) {
       const token = localStorage.getItem('token');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      if (token) headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
   }
@@ -43,11 +36,9 @@ class ApiClient {
     try {
       const res = await fetch(url, options);
       const json = await res.json().catch(() => ({}));
-
       if (!res.ok) {
         throw new Error(json.message || json.error || `HTTP ${res.status}`);
       }
-
       return json;
     } catch (error) {
       console.error(`[API Error] ${method} ${url}:`, error);
@@ -55,8 +46,9 @@ class ApiClient {
     }
   }
 
-  get(endpoint, auth = true) {
-    return this.request('GET', endpoint, null, auth);
+  // Fix: get now accepts params as second arg and auth as third
+  get(endpoint, params = null, auth = true) {
+    return this.request('GET', endpoint, params, auth);
   }
 
   post(endpoint, data, auth = false) {
@@ -72,13 +64,12 @@ class ApiClient {
   }
 }
 
-// Lowercase (preferred)
 export const authApi = new ApiClient(API_BASE.auth);
 export const restaurantApi = new ApiClient(API_BASE.restaurants);
 export const menuApi = new ApiClient(API_BASE.menu);
 export const orderApi = new ApiClient(API_BASE.orders);
 
-// UPPERCASE (for backward compatibility with existing imports)
+// Uppercase aliases
 export const authAPI = authApi;
 export const restaurantAPI = restaurantApi;
 export const menuAPI = menuApi;
