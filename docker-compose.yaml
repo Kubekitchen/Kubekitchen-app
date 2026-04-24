@@ -97,6 +97,21 @@ services:
       mongo-order:
         condition: service_healthy
 
+  seeder:
+    build:
+      context: .
+      dockerfile: Dockerfile.seeder
+    container_name: seeder
+    restart: "no"
+    environment:
+      RESTAURANT_MONGO_URI: mongodb://mongo-restaurant:27017/restaurantdb
+      MENU_MONGO_URI: mongodb://mongo-menu:27017/menudb
+    depends_on:
+      mongo-restaurant:
+        condition: service_healthy
+      mongo-menu:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./services/frontend
