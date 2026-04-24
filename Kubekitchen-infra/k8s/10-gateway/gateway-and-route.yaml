@@ -22,7 +22,7 @@ spec:
     port: 8080
     allowedRoutes:
       namespaces:
-        from: Same
+        from: All
 
 ---
 # ─── HTTPRoute — All Microservice Routes ─────────────────
