@@ -13,8 +13,9 @@ const Orders = () => {
   const fetchOrders = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const { data } = await orderApi.get("");
-      setOrders(data.data);
+      // FIX: use "/" not "" and proper params/auth signature
+      const res = await orderApi.get("/", null, true);
+      setOrders(res.data || []);
     } catch {
       setOrders([]);
     } finally {

@@ -46,12 +46,12 @@ class ApiClient {
     }
   }
 
-  // Fix: get now accepts params as second arg and auth as third
   get(endpoint, params = null, auth = true) {
     return this.request('GET', endpoint, params, auth);
   }
 
-  post(endpoint, data, auth = false) {
+  // FIX: Change auth default from false to true
+  post(endpoint, data, auth = true) {
     return this.request('POST', endpoint, data, auth);
   }
 
@@ -62,6 +62,11 @@ class ApiClient {
   delete(endpoint, auth = true) {
     return this.request('DELETE', endpoint, null, auth);
   }
+
+  // Add patch for order status updates
+  patch(endpoint, data, auth = true) {
+    return this.request('PATCH', endpoint, data, auth);
+  }
 }
 
 export const authApi = new ApiClient(API_BASE.auth);
@@ -69,7 +74,6 @@ export const restaurantApi = new ApiClient(API_BASE.restaurants);
 export const menuApi = new ApiClient(API_BASE.menu);
 export const orderApi = new ApiClient(API_BASE.orders);
 
-// Uppercase aliases
 export const authAPI = authApi;
 export const restaurantAPI = restaurantApi;
 export const menuAPI = menuApi;
