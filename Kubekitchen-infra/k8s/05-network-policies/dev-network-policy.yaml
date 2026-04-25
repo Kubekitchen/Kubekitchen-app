@@ -41,29 +41,27 @@ spec:
       app: frontend
   policyTypes:
     - Ingress
-    - Egress
   ingress:
+    # Allow Contour's Envoy proxy to reach the frontend pod
+    # Contour Envoy runs in the 'projectcontour' namespace
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: kubekitchen-gateway
-      ports:
-        - protocol: TCP
-          port: 8080   # Fixed: nginx port
-  egress:
-    - to:
+              kubernetes.io/metadata.name: projectcontour
         - podSelector:
             matchLabels:
-              tier: backend
+              app.kubernetes.io/component: envoy
       ports:
         - protocol: TCP
-          port: 4001
+          port: 8080
+    # Also allow the kubekitchen-dev Envoy proxy (Contour provisions it here)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
+      ports:
         - protocol: TCP
-          port: 4002
-        - protocol: TCP
-          port: 4003
-        - protocol: TCP
-          port: 4004
+          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -81,22 +79,18 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app: frontend
+              tier: backend
+        # Allow Contour Envoy proxy (provisioned in kubekitchen-dev) to reach backends
         - podSelector:
             matchLabels:
-              tier: backend
+              app.kubernetes.io/component: envoy
+        # Also allow from the shared Contour Envoy in projectcontour namespace
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: kubekitchen-gateway
-      ports:
-        - protocol: TCP
-          port: 4001
-        - protocol: TCP
-          port: 4002
-        - protocol: TCP
-          port: 4003
-        - protocol: TCP
-          port: 4004
+              kubernetes.io/metadata.name: projectcontour
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
   egress:
     - to:
         - podSelector:

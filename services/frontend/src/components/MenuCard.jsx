@@ -20,7 +20,7 @@ const SPICE_COLORS = {
 
 const MenuCard = ({ item, restaurant, index = 0 }) => {
   const { cartItems, addToCart, removeFromCart } = useCart();
-  const cartItem = cartItems.find((i) => i.menuItemId === item._id);
+  const cartItem = cartItems.find((i) => i._id === item._id);
   const quantity = cartItem?.quantity || 0;
   const image = item.image || CATEGORY_IMAGES[item.category] || CATEGORY_IMAGES.main;
 

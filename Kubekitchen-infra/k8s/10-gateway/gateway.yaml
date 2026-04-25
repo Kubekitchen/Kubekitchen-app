@@ -2,16 +2,18 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: kubekitchen-gateway
-  namespace: kubekitchen-gateway
+  namespace: kubekitchen-dev
   labels:
     project: kubekitchen
-    component: gateway
+    environment: dev
 spec:
-  gatewayClassName: kgateway-class
+  # Uses Contour as the gateway controller (running in projectcontour namespace)
+  gatewayClassName: contour
   listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
-      allowedRoutes:
-        namespaces:
-          from: All  # Allow routes from ALL namespaces (dev and prod)
+  - name: http
+    protocol: HTTP
+    port: 80
+    # Allow HTTPRoutes from the same namespace (kubekitchen-dev) to attach
+    allowedRoutes:
+      namespaces:
+        from: Same

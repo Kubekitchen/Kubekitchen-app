@@ -9,8 +9,8 @@ sudo apt-get update -y
 sudo apt-get install -y haproxy
 
 echo "=== Configuring HAProxy ==="
-# Replace placeholders with actual worker IPs
-sed -i "s|172.31.66.23|$WORKER1_IP|g" haproxy.cfg
+# Replace WORKER1_IP and WORKER2_IP placeholders with actual IPs
+sed -i "s|WORKER1_IP|$WORKER1_IP|g" haproxy.cfg
 sed -i "s|WORKER2_IP|$WORKER2_IP|g" haproxy.cfg
 
 sudo cp haproxy.cfg /etc/haproxy/haproxy.cfg

@@ -1,0 +1,34 @@
+# ─── NodePort Service to expose Contour Envoy proxy on port 30080 ─────────────
+#
+# When Contour processes a Gateway resource, it creates an Envoy Deployment
+# in the same namespace as the Gateway (kubekitchen-dev). The pod is named
+# after the Gateway: kubekitchen-gateway-<hash>.
+#
+# Contour labels its provisioned Envoy pods with:
+#   app.kubernetes.io/component: envoy
+#   app.kubernetes.io/managed-by: contour
+#   gateway.envoyproxy.io is NOT used by Contour (that's Envoy Gateway)
+#
+# HAProxy on the separate EC2 VM forwards all traffic to worker nodes on
+# port 30080, which is then redirected to this Envoy pod on port 80.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubekitchen-gateway-nodeport
+  namespace: kubekitchen-dev
+  labels:
+    project: kubekitchen
+    component: gateway-nodeport
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080   # Contour Envoy proxy listens on 8080 internally
+    nodePort: 30080    # HAProxy forwards to this port on worker nodes
+    protocol: TCP
+  # Contour provisions the Envoy proxy pod with these labels
+  selector:
+    app.kubernetes.io/component: envoy
+    app.kubernetes.io/managed-by: contour
