@@ -26,6 +26,8 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
