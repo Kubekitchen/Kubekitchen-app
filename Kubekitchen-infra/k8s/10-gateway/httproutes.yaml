@@ -1,109 +1,121 @@
+# ─── Auth Service Route ────────────────────────────────────────────────────────
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: kubekitchen-dev-routes
+  name: auth-route
   namespace: kubekitchen-dev
   labels:
     project: kubekitchen
     environment: dev
 spec:
   parentRefs:
-    - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
-      sectionName: http-dev
+  - name: kubekitchen-gateway
+    namespace: kubekitchen-dev
+    sectionName: http
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/auth
-      backendRefs:
-        - name: auth-service
-          namespace: kubekitchen-dev
-          port: 4001
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/restaurants
-      backendRefs:
-        - name: restaurant-service
-          namespace: kubekitchen-dev
-          port: 4002
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/menu
-      backendRefs:
-        - name: menu-service
-          namespace: kubekitchen-dev
-          port: 4003
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/orders
-      backendRefs:
-        - name: order-service
-          namespace: kubekitchen-dev
-          port: 4004
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: frontend
-          namespace: kubekitchen-dev
-          port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/auth
+    backendRefs:
+    - name: auth-service
+      namespace: kubekitchen-dev
+      port: 4001
 ---
+# ─── Restaurant Service Route ─────────────────────────────────────────────────
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: kubekitchen-prod-routes
-  namespace: kubekitchen-prod
+  name: restaurant-route
+  namespace: kubekitchen-dev
   labels:
     project: kubekitchen
-    environment: prod
+    environment: dev
 spec:
   parentRefs:
-    - name: kubekitchen-gateway
-      namespace: kubekitchen-gateway
-      sectionName: http-prod
+  - name: kubekitchen-gateway
+    namespace: kubekitchen-dev
+    sectionName: http
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/auth
-      backendRefs:
-        - name: auth-service
-          namespace: kubekitchen-prod
-          port: 4001
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/restaurants
-      backendRefs:
-        - name: restaurant-service
-          namespace: kubekitchen-prod
-          port: 4002
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/menu
-      backendRefs:
-        - name: menu-service
-          namespace: kubekitchen-prod
-          port: 4003
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/orders
-      backendRefs:
-        - name: order-service
-          namespace: kubekitchen-prod
-          port: 4004
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: frontend
-          namespace: kubekitchen-prod
-          port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/restaurants
+    backendRefs:
+    - name: restaurant-service
+      namespace: kubekitchen-dev
+      port: 4002
+---
+# ─── Menu Service Route ───────────────────────────────────────────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: menu-route
+  namespace: kubekitchen-dev
+  labels:
+    project: kubekitchen
+    environment: dev
+spec:
+  parentRefs:
+  - name: kubekitchen-gateway
+    namespace: kubekitchen-dev
+    sectionName: http
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/menu
+    backendRefs:
+    - name: menu-service
+      namespace: kubekitchen-dev
+      port: 4003
+---
+# ─── Order Service Route ──────────────────────────────────────────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: order-route
+  namespace: kubekitchen-dev
+  labels:
+    project: kubekitchen
+    environment: dev
+spec:
+  parentRefs:
+  - name: kubekitchen-gateway
+    namespace: kubekitchen-dev
+    sectionName: http
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/orders
+    backendRefs:
+    - name: order-service
+      namespace: kubekitchen-dev
+      port: 4004
+---
+# ─── Frontend Route (catch-all, MUST be last) ─────────────────────────────────
+# This must have lower specificity than API routes — Gateway spec guarantees
+# longer prefix matches win, so /api/* routes will always be preferred over /
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: frontend-route
+  namespace: kubekitchen-dev
+  labels:
+    project: kubekitchen
+    environment: dev
+spec:
+  parentRefs:
+  - name: kubekitchen-gateway
+    namespace: kubekitchen-dev
+    sectionName: http
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: frontend
+      namespace: kubekitchen-dev
+      port: 8080

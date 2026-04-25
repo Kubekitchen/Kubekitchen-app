@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, ShoppingBag } from "lucide-react";
-import { orderAPI } from "../api/axios";
+import { orderApi } from "../api/axios";
 import OrderCard from "../components/OrderCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 
@@ -13,8 +13,9 @@ const Orders = () => {
   const fetchOrders = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const { data } = await orderAPI.get("/api/orders");
-      setOrders(data.data);
+      // FIX: use "/" not "" and proper params/auth signature
+      const res = await orderApi.get("/", null, true);
+      setOrders(res.data || []);
     } catch {
       setOrders([]);
     } finally {

@@ -1,0 +1,8 @@
+# GatewayClass for kgateway (confirmed running — pod label: kgateway=kube-gateway)
+# GatewayClass is cluster-scoped — no namespace field
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: kgateway-class
+spec:
+  controllerName: kgateway.dev/kgateway

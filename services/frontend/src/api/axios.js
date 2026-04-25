@@ -1,30 +1,87 @@
-import axios from "axios";
-
-const createInstance = (baseURL) => {
-  const instance = axios.create({ baseURL });
-
-  instance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("kk_token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  });
-
-  instance.interceptors.response.use(
-    (res) => res,
-    (err) => {
-      if (err.response?.status === 401) {
-        localStorage.removeItem("kk_token");
-        localStorage.removeItem("kk_user");
-        window.location.href = "/login";
-      }
-      return Promise.reject(err);
-    }
-  );
-
-  return instance;
+const API_BASE = {
+  auth: '/api/auth',
+  restaurants: '/api/restaurants',
+  menu: '/api/menu',
+  orders: '/api/orders',
 };
 
-export const authAPI = createInstance(import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost:4001");
-export const restaurantAPI = createInstance(import.meta.env.VITE_RESTAURANT_SERVICE_URL || "http://localhost:4002");
-export const menuAPI = createInstance(import.meta.env.VITE_MENU_SERVICE_URL || "http://localhost:4003");
-export const orderAPI = createInstance(import.meta.env.VITE_ORDER_SERVICE_URL || "http://localhost:4004");
+class ApiClient {
+  constructor(baseURL) {
+    this.baseURL = baseURL;
+  }
+
+  getHeaders(includeAuth = true) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (includeAuth) {
+      const token = localStorage.getItem('token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  async request(method, endpoint, data = null, auth = true) {
+    let url = `${this.baseURL}${endpoint}`;
+    const options = {
+      method,
+      headers: this.getHeaders(auth),
+    };
+
+    if (method === 'GET' && data) {
+      const params = new URLSearchParams(data);
+      url += `?${params}`;
+    } else if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    try {
+      const res = await fetch(url, options);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.message || json.error || `HTTP ${res.status}`);
+      }
+      return json;
+    } catch (error) {
+      console.error(`[API Error] ${method} ${url}:`, error);
+      throw error;
+    }
+  }
+
+  get(endpoint, params = null, auth = true) {
+    return this.request('GET', endpoint, params, auth);
+  }
+
+  // FIX: Change auth default from false to true
+  post(endpoint, data, auth = true) {
+    return this.request('POST', endpoint, data, auth);
+  }
+
+  put(endpoint, data, auth = true) {
+    return this.request('PUT', endpoint, data, auth);
+  }
+
+  delete(endpoint, auth = true) {
+    return this.request('DELETE', endpoint, null, auth);
+  }
+
+  // Add patch for order status updates
+  patch(endpoint, data, auth = true) {
+    return this.request('PATCH', endpoint, data, auth);
+  }
+}
+
+export const authApi = new ApiClient(API_BASE.auth);
+export const restaurantApi = new ApiClient(API_BASE.restaurants);
+export const menuApi = new ApiClient(API_BASE.menu);
+export const orderApi = new ApiClient(API_BASE.orders);
+
+export const authAPI = authApi;
+export const restaurantAPI = restaurantApi;
+export const menuAPI = menuApi;
+export const orderAPI = orderApi;
+
+export default {
+  auth: authApi,
+  restaurant: restaurantApi,
+  menu: menuApi,
+  order: orderApi,
+};

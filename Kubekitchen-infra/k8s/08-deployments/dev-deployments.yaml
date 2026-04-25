@@ -13,6 +13,11 @@ spec:
   selector:
     matchLabels:
       app: auth-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -21,6 +26,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -29,7 +37,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: auth-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-auth-service:dev-latest
+          image: secretpower/kubekitchen-auth-service:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4001
@@ -75,7 +83,6 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
-            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /health
@@ -84,7 +91,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
-            successThreshold: 1
           startupProbe:
             httpGet:
               path: /health
@@ -108,6 +114,11 @@ spec:
   selector:
     matchLabels:
       app: restaurant-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -116,6 +127,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -124,7 +138,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: restaurant-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-restaurant-service:dev-latest
+          image: secretpower/kubekitchen-restaurant-service:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4002
@@ -165,7 +179,6 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
-            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /health
@@ -174,7 +187,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
-            successThreshold: 1
           startupProbe:
             httpGet:
               path: /health
@@ -198,6 +210,11 @@ spec:
   selector:
     matchLabels:
       app: menu-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -206,6 +223,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -214,7 +234,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: menu-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-menu-service:dev-latest
+          image: secretpower/kubekitchen-menu-service:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4003
@@ -255,7 +275,6 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
-            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /health
@@ -264,7 +283,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
-            successThreshold: 1
           startupProbe:
             httpGet:
               path: /health
@@ -288,6 +306,11 @@ spec:
   selector:
     matchLabels:
       app: order-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -296,6 +319,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -304,7 +330,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: order-service
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-order-service:dev-latest
+          image: secretpower/kubekitchen-order-service:dev-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4004
@@ -350,7 +376,6 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
-            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /health
@@ -359,7 +384,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
-            successThreshold: 1
           startupProbe:
             httpGet:
               path: /health
@@ -383,6 +407,11 @@ spec:
   selector:
     matchLabels:
       app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -391,6 +420,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -399,10 +431,10 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: frontend
-          image: YOUR_DOCKERHUB_USERNAME/kubekitchen-frontend:dev-latest
+          image: secretpower/kubekitchen-frontend:dev-latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - containerPort: 8080  # Fixed: nginx runs on 8080
               name: http
           resources:
             requests:
@@ -413,26 +445,24 @@ spec:
               cpu: "200m"
           livenessProbe:
             httpGet:
-              path: /
-              port: 80
+              path: /health
+              port: 8080   # Fixed: 8080
             initialDelaySeconds: 15
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
-            successThreshold: 1
           readinessProbe:
             httpGet:
-              path: /
-              port: 80
+              path: /health
+              port: 8080   # Fixed: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
-            successThreshold: 1
           startupProbe:
             httpGet:
-              path: /
-              port: 80
+              path: /health
+              port: 8080   # Fixed: 8080
             initialDelaySeconds: 3
             periodSeconds: 5
             failureThreshold: 10

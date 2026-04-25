@@ -87,8 +87,8 @@ spec:
   selector:
     app: frontend
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 8080       # Fixed: match nginx port
+      targetPort: 8080 # Fixed: nginx listens on 8080
       protocol: TCP
       name: http
   type: ClusterIP
