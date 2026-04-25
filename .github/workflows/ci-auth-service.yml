@@ -209,19 +209,15 @@ jobs:
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Update image tag in Helm values
+      - name: Update image tag and push to Helm repo
         run: |
           cd Kubekitchen-GitOps
-          NEW_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          export NEW_TAG="${{ needs.build-and-push.outputs.image_tag }}"
           # Update values-dev.yaml (CI deploys to dev/green first)
           # Note: key is hyphenated "auth-service" not camelCase
-          yq e '.["auth-service"].image.tag = strenv(NEW_TAG)' -i values-dev.yaml
+          yq e '."auth-service".image.tag = strenv(NEW_TAG)' -i values-dev.yaml
           echo "📝 Updated auth-service tag to ${NEW_TAG} in values-dev.yaml"
-          yq '.["auth-service"].image' values-dev.yaml
-
-      - name: Commit and push to Helm repo
-        run: |
-          cd Kubekitchen-GitOps
+          yq '."auth-service".image' values-dev.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
@@ -229,7 +225,7 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "ci(auth-service): image → ${{ needs.build-and-push.outputs.image_tag }}"
+          git commit -m "ci(auth-service): image → ${NEW_TAG}"
           for i in 1 2 3 4 5; do
             git push && break
             echo "Push failed, retry $i/5..."
