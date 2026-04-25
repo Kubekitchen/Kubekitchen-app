@@ -26,6 +26,7 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
       nodeSelector:
         kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
@@ -126,6 +127,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -219,6 +223,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -312,6 +319,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
@@ -410,6 +420,9 @@ spec:
         project: kubekitchen
         environment: dev
     spec:
+      # Pin to Worker1 — all pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
       serviceAccountName: kubekitchen-sa
       securityContext:
         runAsNonRoot: true
