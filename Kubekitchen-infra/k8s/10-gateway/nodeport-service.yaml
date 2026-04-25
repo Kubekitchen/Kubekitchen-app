@@ -12,6 +12,17 @@
 # HAProxy on the separate EC2 VM forwards all traffic to worker nodes on
 # port 30080, which is then redirected to this Envoy pod on port 80.
 #
+# ─── NodePort Service: expose kgateway proxy on port 30080 ────────────────────
+#
+# kgateway provisions a proxy pod in kubekitchen-dev named 'kubekitchen-gateway'.
+# Actual pod labels (verified via kubectl --show-labels):
+#   app.kubernetes.io/name=kubekitchen-gateway
+#   app.kubernetes.io/instance=kubekitchen-gateway
+#   kgateway=kube-gateway
+#
+# HAProxy on the separate EC2 VM forwards all traffic to worker nodes on
+# port 30080, which NodePort routes to this kgateway proxy pod on port 8080.
+#
 apiVersion: v1
 kind: Service
 metadata:
@@ -25,10 +36,9 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: 8080   # Contour Envoy proxy listens on 8080 internally
+    targetPort: 8080   # kgateway proxy listens on 8080 for HTTP
     nodePort: 30080    # HAProxy forwards to this port on worker nodes
     protocol: TCP
-  # Contour provisions the Envoy proxy pod with these labels
+  # Selector matches the actual kgateway proxy pod labels
   selector:
-    app.kubernetes.io/component: envoy
-    app.kubernetes.io/managed-by: contour
+    kgateway: kube-gateway

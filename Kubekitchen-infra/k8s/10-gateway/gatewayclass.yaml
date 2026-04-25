@@ -1,12 +1,8 @@
-# GatewayClass for Contour (running in projectcontour namespace)
+# GatewayClass for kgateway (confirmed running — pod label: kgateway=kube-gateway)
 # GatewayClass is cluster-scoped — no namespace field
-# NOTE: The 'contour' GatewayClass (from contour-gatewayclass.yaml in project root)
-# is the one actually used. This file is kept for reference only.
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: contour
-  # GatewayClass is cluster-scoped, no namespace
+  name: kgateway-class
 spec:
-  # Contour's gateway controller name — must match exactly
-  controllerName: projectcontour.io/gateway-controller
+  controllerName: kgateway.dev/kgateway
