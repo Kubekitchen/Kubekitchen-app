@@ -178,20 +178,16 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Update image tag in Helm values
+      - name: Update and push
         run: |
           cd Kubekitchen-GitOps
-          yq e ".menuService.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
-
-      - name: Commit and push to Helm repo
-        run: |
-          cd Kubekitchen-GitOps
+          NEW_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          yq e '["menu-service"].image.tag = strenv(NEW_TAG)' -i values-dev.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          if git diff --staged --quiet; then echo "No changes"; exit 0; fi
+          git add . && git diff --staged --quiet && exit 0
           git commit -m "ci(menu-service): image → ${{ needs.build-and-push.outputs.image_tag }}"
-          for i in 1 2 3 4 5; do git push && break; git pull --rebase origin main; sleep $((i * 2)); done
+          for i in 1 2 3 4 5; do git push && break; git pull --rebase origin main; sleep $((i*2)); done
 
       - name: Send Success Email
         if: success()

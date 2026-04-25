@@ -139,7 +139,8 @@ jobs:
       - name: Update and push
         run: |
           cd Kubekitchen-GitOps
-          yq e ".orderService.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
+          NEW_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          yq e '["order-service"].image.tag = strenv(NEW_TAG)' -i values-dev.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add . && git diff --staged --quiet && exit 0

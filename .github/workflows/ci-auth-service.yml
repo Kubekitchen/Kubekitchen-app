@@ -213,9 +213,11 @@ jobs:
         run: |
           cd Kubekitchen-GitOps
           NEW_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-          yq e ".authService.image.tag = \"${NEW_TAG}\"" -i values.yaml
-          echo "📝 Updated auth-service tag to ${NEW_TAG}"
-          yq '.authService' values.yaml
+          # Update values-dev.yaml (CI deploys to dev/green first)
+          # Note: key is hyphenated "auth-service" not camelCase
+          yq e '.["auth-service"].image.tag = strenv(NEW_TAG)' -i values-dev.yaml
+          echo "📝 Updated auth-service tag to ${NEW_TAG} in values-dev.yaml"
+          yq '.["auth-service"].image' values-dev.yaml
 
       - name: Commit and push to Helm repo
         run: |

@@ -181,7 +181,8 @@ jobs:
       - name: Update image tag in Helm values
         run: |
           cd Kubekitchen-GitOps
-          yq e ".restaurantService.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
+          yq e '["restaurant-service"].image.tag = strenv(NEW_TAG)' -i values-dev.yaml
+          echo "Updated restaurant-service tag to ${NEW_TAG} in values-dev.yaml"
 
       - name: Commit and push to Helm repo
         run: |
