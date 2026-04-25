@@ -3,26 +3,45 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, ShoppingBag, MapPin } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { orderAPI } from "../api/axios";
+import { orderApi } from "../api/axios";
 import toast from "react-hot-toast";
 
 const CartSidebar = () => {
-  const { isOpen, setIsOpen, cartItems, restaurantInfo, totalAmount, clearCart, removeFromCart, addToCart } = useCart();
+  const {
+    isOpen,
+    setIsOpen,
+    cartItems,
+    restaurantInfo,
+    totalAmount,
+    clearCart,
+    removeFromCart,
+    addToCart,
+  } = useCart();
   const { user } = useAuth();
   const [address, setAddress] = useState({ street: "", city: "", state: "", zipCode: "" });
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [placing, setPlacing] = useState(false);
 
   const handlePlaceOrder = async () => {
+    if (!user) {
+      toast.error("Please login to place an order");
+      return;
+    }
     if (!address.street || !address.city) {
       toast.error("Please fill in your delivery address");
       return;
     }
     setPlacing(true);
     try {
-      await orderAPI.post("/api/orders", {
-        items: cartItems,
-        restaurantId: restaurantInfo.id,
+      await orderApi.post("/", {
+        items: cartItems.map(item => ({
+          menuItemId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image || "",
+        })),
+        restaurantId: restaurantInfo._id,
         restaurantName: restaurantInfo.name,
         deliveryAddress: address,
         paymentMethod,
@@ -30,7 +49,7 @@ const CartSidebar = () => {
       toast.success("🎉 Order placed successfully!");
       clearCart();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to place order");
+      toast.error(err.message || "Failed to place order");
     } finally {
       setPlacing(false);
     }
@@ -116,7 +135,7 @@ const CartSidebar = () => {
                   <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
                     {cartItems.map((item) => (
                       <motion.div
-                        key={item.menuItemId}
+                        key={item._id}
                         layout
                         style={{
                           display: "flex",
@@ -136,7 +155,7 @@ const CartSidebar = () => {
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <button
-                            onClick={() => removeFromCart(item.menuItemId)}
+                            onClick={() => removeFromCart(item._id)}
                             style={{
                               background: "rgba(255,255,255,0.08)",
                               border: "none",
@@ -157,7 +176,7 @@ const CartSidebar = () => {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => addToCart({ _id: item.menuItemId, ...item }, restaurantInfo)}
+                            onClick={() => addToCart(item, restaurantInfo)}
                             style={{
                               background: "rgba(255,107,53,0.2)",
                               border: "none",
@@ -256,7 +275,9 @@ const CartSidebar = () => {
                   disabled={placing}
                   style={{
                     width: "100%",
-                    background: placing ? "rgba(255,107,53,0.5)" : "linear-gradient(135deg, #ff6b35, #ff1f8e)",
+                    background: placing
+                      ? "rgba(255,107,53,0.5)"
+                      : "linear-gradient(135deg, #ff6b35, #ff1f8e)",
                     border: "none",
                     borderRadius: 12,
                     padding: 14,

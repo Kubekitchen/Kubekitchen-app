@@ -31,7 +31,7 @@ echo "Waiting for kgateway..."
 sleep 30
 
 echo ">>> Step 3: Namespaces"
-kubectl apply -f k8s/00-namespaces/namespaces.yaml
+kubectl apply -f k8s/00-namespaces/namespace.yaml   # FIXED: was 'namespaces.yaml'
 sleep 3
 
 echo ">>> Step 4: RBAC"
@@ -75,10 +75,16 @@ echo ">>> Step 11: Services"
 kubectl apply -f k8s/09-services/dev-services.yaml
 kubectl apply -f k8s/09-services/prod-services.yaml
 
-echo ">>> Step 12: Gateway"
-kubectl apply -f k8s/10-gateway/gateway-namespace.yaml
+echo ">>> Step 12: Gateway + Routes"
+# Apply the GatewayClass (cluster-scoped, idempotent)
+kubectl apply -f k8s/10-gateway/gatewayclass.yaml
+# Apply the Gateway resource (creates Contour Envoy proxy in kubekitchen-dev)
 kubectl apply -f k8s/10-gateway/gateway.yaml
-sleep 10
+echo "Waiting for Contour to provision the Envoy proxy pod..."
+sleep 15
+# Expose the Envoy proxy via NodePort 30080 (HAProxy target)
+kubectl apply -f k8s/10-gateway/nodeport-service.yaml
+# Apply all HTTPRoutes
 kubectl apply -f k8s/10-gateway/httproutes.yaml
 
 echo ""

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { restaurantAPI } from "../api/axios";
 import RestaurantCard from "../components/RestaurantCard";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -16,11 +16,16 @@ const Restaurants = () => {
   const fetchRestaurants = async () => {
     setLoading(true);
     try {
+      // Build query string manually
       const params = {};
       if (search) params.search = search;
       if (selectedCuisine !== "All") params.cuisine = selectedCuisine;
-      const { data } = await restaurantAPI.get("/api/restaurants", { params });
-      setRestaurants(data.data);
+
+      // Fix 1: use "/" not "" and pass params correctly
+      const res = await restaurantAPI.request("GET", "/", params, false);
+
+      // Fix 2: res is { success, data, total, page }
+      setRestaurants(res.data || []);
     } catch {
       setRestaurants([]);
     } finally {
@@ -82,6 +87,9 @@ const Restaurants = () => {
                 fontSize: "1rem",
                 background: "var(--bg-card)",
                 border: "1px solid var(--border)",
+                width: "100%",
+                color: "white",
+                outline: "none",
               }}
             />
           </div>

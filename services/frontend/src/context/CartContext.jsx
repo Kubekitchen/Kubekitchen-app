@@ -5,9 +5,10 @@ const CartContext = createContext(null);
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartRestaurant, setCartRestaurant] = useState(null);
+  // NEW - cart open/close state lives here so navbar & sidebar both access it
+  const [isOpen, setIsOpen] = useState(false);
 
   const addToCart = useCallback((item, restaurant) => {
-    // If adding from different restaurant, clear cart first
     if (cartRestaurant && cartRestaurant._id !== restaurant._id) {
       if (!window.confirm("Adding items from a new restaurant will clear your current cart. Continue?")) {
         return false;
@@ -32,7 +33,11 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = useCallback((itemId) => {
     setCartItems(prev => {
-      const updated = prev.filter(i => i._id !== itemId);
+      const updated = prev.map(i =>
+        i._id === itemId
+          ? { ...i, quantity: i.quantity - 1 }
+          : i
+      ).filter(i => i.quantity > 0);
       if (updated.length === 0) setCartRestaurant(null);
       return updated;
     });
@@ -51,6 +56,7 @@ export const CartProvider = ({ children }) => {
   const clearCart = useCallback(() => {
     setCartItems([]);
     setCartRestaurant(null);
+    setIsOpen(false);
   }, []);
 
   const totalItems = cartItems.reduce((sum, i) => sum + i.quantity, 0);
@@ -60,6 +66,9 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider value={{
       cartItems,
       cartRestaurant,
+      restaurantInfo: cartRestaurant, // alias so CartSidebar works
+      isOpen,
+      setIsOpen,
       totalItems,
       totalAmount,
       addToCart,

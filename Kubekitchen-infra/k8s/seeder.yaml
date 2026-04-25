@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubekitchen-seeder
+  namespace: kubekitchen-dev
+  labels:
+    app: seeder
+    project: kubekitchen
+    environment: dev
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: seeder
+        project: kubekitchen
+    spec:
+      # Pin to Worker1 — all app pods run here due to Weave Net overlay constraints
+      nodeSelector:
+        kubernetes.io/hostname: ip-172-31-66-23
+      restartPolicy: OnFailure
+      serviceAccountName: kubekitchen-sa
+      initContainers:
+      - name: wait-for-mongo-restaurant
+        image: mongo:7
+        command:
+        - sh
+        - -c
+        - |
+          until mongosh mongodb://mongodb-restaurant-0.mongodb-restaurant-headless.kubekitchen-dev.svc.cluster.local:27017/restaurantdb --eval "db.adminCommand('ping')" --quiet; do
+            echo "Waiting for mongodb-restaurant..."
+            sleep 5
+          done
+          echo "mongodb-restaurant ready!"
+      - name: wait-for-mongo-menu
+        image: mongo:7
+        command:
+        - sh
+        - -c
+        - |
+          until mongosh mongodb://mongodb-menu-0.mongodb-menu-headless.kubekitchen-dev.svc.cluster.local:27017/menudb --eval "db.adminCommand('ping')" --quiet; do
+            echo "Waiting for mongodb-menu..."
+            sleep 5
+          done
+          echo "mongodb-menu ready!"
+      containers:
+      - name: seeder
+        image: secretpower/kubekitchen-seeder:dev-latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        env:
+        - name: RESTAURANT_MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: kubekitchen-secrets
+              key: MONGO_RESTAURANT_URI
+        - name: MENU_MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: kubekitchen-secrets
+              key: MONGO_MENU_URI

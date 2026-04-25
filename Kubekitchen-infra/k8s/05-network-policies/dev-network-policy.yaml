@@ -1,3 +1,54 @@
+# ─── Allow traffic INTO the kgateway proxy pod ────────────────────────────────
+# The default-deny-all blocks ALL pods including the kgateway proxy.
+# Without this policy, NodePort traffic is dropped before reaching the pod.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-ingress
+  namespace: kubekitchen-dev
+spec:
+  podSelector:
+    matchLabels:
+      kgateway: kube-gateway
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: backend
+    ports:
+    - protocol: TCP
+      port: 4001
+    - protocol: TCP
+      port: 4002
+    - protocol: TCP
+      port: 4003
+    - protocol: TCP
+      port: 4004
+  - to:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -15,7 +66,7 @@ metadata:
   name: allow-dns-egress
   namespace: kubekitchen-dev
 spec:
-  podSelector: {}
+  podSelector: {}  # Applies to ALL pods including database
   policyTypes:
     - Egress
   egress:
@@ -41,29 +92,27 @@ spec:
       app: frontend
   policyTypes:
     - Ingress
-    - Egress
   ingress:
+    # Allow Contour's Envoy proxy to reach the frontend pod
+    # Contour Envoy runs in the 'projectcontour' namespace
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: kubekitchen-gateway
-      ports:
-        - protocol: TCP
-          port: 80
-  egress:
-    - to:
+              kubernetes.io/metadata.name: projectcontour
         - podSelector:
             matchLabels:
-              tier: backend
+              app.kubernetes.io/component: envoy
       ports:
         - protocol: TCP
-          port: 4001
+          port: 8080
+    # Also allow the kubekitchen-dev Envoy proxy (Contour provisions it here)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
+      ports:
         - protocol: TCP
-          port: 4002
-        - protocol: TCP
-          port: 4003
-        - protocol: TCP
-          port: 4004
+          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -81,22 +130,18 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app: frontend
+              tier: backend
+        # Allow Contour Envoy proxy (provisioned in kubekitchen-dev) to reach backends
         - podSelector:
             matchLabels:
-              tier: backend
+              app.kubernetes.io/component: envoy
+        # Also allow from the shared Contour Envoy in projectcontour namespace
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: kubekitchen-gateway
-      ports:
-        - protocol: TCP
-          port: 4001
-        - protocol: TCP
-          port: 4002
-        - protocol: TCP
-          port: 4003
-        - protocol: TCP
-          port: 4004
+              kubernetes.io/metadata.name: projectcontour
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: envoy
   egress:
     - to:
         - podSelector:
@@ -124,11 +169,15 @@ spec:
       tier: database
   policyTypes:
     - Ingress
+    # No Egress needed - DNS handled by allow-dns-egress above
   ingress:
     - from:
         - podSelector:
             matchLabels:
               tier: backend
+        - podSelector:
+            matchLabels:
+              app: seeder   # Allow seeder job to access databases
       ports:
         - protocol: TCP
           port: 27017

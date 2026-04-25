@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await authApi.post("/login", { email, password }, false);
+    const res = await authApi.post("/login", { email, password }, false); // ← auth=false
     if (res.success) {
       localStorage.setItem("token", res.token);
       setToken(res.token);
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password, role = "customer") => {
-    const res = await authApi.post("/register", { name, email, password, role }, false);
+    const res = await authApi.post("/register", { name, email, password, role }, false); // ← auth=false
     if (res.success) {
       localStorage.setItem("token", res.token);
       setToken(res.token);
@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }) => {
     }
     throw new Error(res.message || "Registration failed");
   };
-
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);

@@ -1,0 +1,74 @@
+# ─── KubeKitchen Nginx Ingress ────────────────────────────────────────────────
+# Architecture: HAProxy (public IP) → Nginx Ingress hostPort:80 → Services
+# Nginx Ingress is installed with hostNetwork=true (DaemonSet mode)
+# so it binds directly to port 80 on each worker node's host network.
+#
+# Install Nginx Ingress (run once):
+#   helm upgrade --install ingress-nginx ingress-nginx \
+#     --repo https://kubernetes.github.io/ingress-nginx \
+#     --namespace ingress-nginx --create-namespace \
+#     --set controller.hostNetwork=true \
+#     --set controller.kind=DaemonSet \
+#     --set controller.service.type=ClusterIP
+#
+# After install, delete the admission webhook to avoid TLS cert issues:
+#   kubectl delete validatingwebhookconfiguration ingress-nginx-admission
+
+# ─── API Routes (no path rewrite — services handle full /api/* paths) ─────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubekitchen-api-ingress
+  namespace: kubekitchen-dev
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 4001
+      - path: /api/restaurants
+        pathType: Prefix
+        backend:
+          service:
+            name: restaurant-service
+            port:
+              number: 4002
+      - path: /api/menu
+        pathType: Prefix
+        backend:
+          service:
+            name: menu-service
+            port:
+              number: 4003
+      - path: /api/orders
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 4004
+---
+# ─── Frontend (catch-all, no rewrite — nginx inside container handles assets) ──
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubekitchen-frontend-ingress
+  namespace: kubekitchen-dev
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 8080

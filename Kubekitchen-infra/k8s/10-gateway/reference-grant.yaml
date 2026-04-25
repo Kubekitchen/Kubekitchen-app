@@ -1,0 +1,28 @@
+# ─── ReferenceGrant: NOT REQUIRED for kubekitchen-dev ─────────────────────────
+#
+# Since the Gateway, all HTTPRoutes, and all backend Services are in the SAME
+# namespace (kubekitchen-dev), no ReferenceGrant is needed for dev.
+#
+# A ReferenceGrant is only required when an HTTPRoute in namespace A references
+# a Service in namespace B.
+#
+# The old grants were incorrect: they granted access from kubekitchen-gateway
+# namespace, but HTTPRoutes are in kubekitchen-dev, not kubekitchen-gateway.
+#
+# ─── ReferenceGrant: prod namespace (if prod HTTPRoutes are added later) ───────
+# Uncomment below if you create HTTPRoutes in a gateway namespace that need
+# to reach services in kubekitchen-prod:
+#
+# apiVersion: gateway.networking.k8s.io/v1beta1
+# kind: ReferenceGrant
+# metadata:
+#   name: gateway-to-prod
+#   namespace: kubekitchen-prod
+# spec:
+#   from:
+#     - group: gateway.networking.k8s.io
+#       kind: HTTPRoute
+#       namespace: kubekitchen-prod
+#   to:
+#     - group: ""
+#       kind: Service

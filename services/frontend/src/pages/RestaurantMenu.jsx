@@ -20,11 +20,11 @@ const RestaurantMenu = () => {
     const load = async () => {
       try {
         const [rRes, mRes] = await Promise.all([
-          restaurantAPI.get(`/api/restaurants/${id}`),
-          menuAPI.get(`/api/menu/restaurant/${id}`),
+          restaurantAPI.get(`/${id}`, false),
+          menuAPI.get(`/restaurant/${id}`, false),
         ]);
-        setRestaurant(rRes.data.data);
-        setMenuItems(mRes.data.data);
+        setRestaurant(rRes.data);
+        setMenuItems(mRes.data);
       } catch {
         navigate("/restaurants");
       } finally {
@@ -42,7 +42,11 @@ const RestaurantMenu = () => {
       ? menuItems
       : menuItems.filter((i) => i.category === activeCategory);
 
-  const restaurantForCart = { id: restaurant._id, name: restaurant.name };
+  // Fix: must use _id not id so CartContext comparison works
+  const restaurantForCart = {
+    _id: restaurant._id,
+    name: restaurant.name,
+  };
 
   return (
     <div style={{ minHeight: "100vh", paddingTop: 70, background: "#0f0f1a" }}>
@@ -61,7 +65,18 @@ const RestaurantMenu = () => {
             background: "radial-gradient(ellipse at center, rgba(255,107,53,0.2) 0%, transparent 70%)",
           }}
         />
-        <div className="page-container" style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: 32, position: "relative", zIndex: 1 }}>
+        <div
+          className="page-container"
+          style={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            paddingBottom: 32,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           <motion.button
             whileHover={{ scale: 1.05 }}
             onClick={() => navigate("/restaurants")}
@@ -105,14 +120,22 @@ const RestaurantMenu = () => {
               ))}
             </div>
 
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2.2rem", fontWeight: 800, marginBottom: 12 }}>
+            <h1
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "2.2rem",
+                fontWeight: 800,
+                marginBottom: 12,
+              }}
+            >
               {restaurant.name}
             </h1>
 
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: "0.9rem", color: "#ffd700" }}>
                 <Star size={14} fill="#ffd700" />
-                {restaurant.rating || "New"} {restaurant.totalRatings > 0 && `(${restaurant.totalRatings})`}
+                {restaurant.rating || "New"}{" "}
+                {restaurant.totalRatings > 0 && `(${restaurant.totalRatings})`}
               </span>
               <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
                 <Clock size={14} /> {restaurant.deliveryTime}
@@ -145,7 +168,9 @@ const RestaurantMenu = () => {
                 borderRadius: 50,
                 border: activeCategory === cat ? "none" : "1px solid var(--border)",
                 background:
-                  activeCategory === cat ? "linear-gradient(135deg, #ff6b35, #ff1f8e)" : "transparent",
+                  activeCategory === cat
+                    ? "linear-gradient(135deg, #ff6b35, #ff1f8e)"
+                    : "transparent",
                 color: activeCategory === cat ? "white" : "var(--text-secondary)",
                 cursor: "pointer",
                 fontSize: "0.85rem",
@@ -165,7 +190,13 @@ const RestaurantMenu = () => {
             <p>No items in this category</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 20 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              gap: 20,
+            }}
+          >
             {filtered.map((item, i) => (
               <MenuCard key={item._id} item={item} restaurant={restaurantForCart} index={i} />
             ))}

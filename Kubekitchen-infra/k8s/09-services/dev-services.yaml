@@ -81,14 +81,13 @@ metadata:
   namespace: kubekitchen-dev
   labels:
     app: frontend
-    tier: frontend
     project: kubekitchen
 spec:
+  type: ClusterIP   # Changed from NodePort - gateway handles external access
   selector:
     app: frontend
   ports:
-    - port: 80
-      targetPort: 8080
+    - port: 8080       # Fixed: match nginx port
+      targetPort: 8080 # Fixed: nginx listens on 8080
       protocol: TCP
       name: http
-  type: ClusterIP
