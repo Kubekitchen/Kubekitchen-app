@@ -52,3 +52,5 @@ start().catch(err => {
   console.error('Failed to start auth service:', err);
   process.exit(1);
 });
+
+// pipeline check for auth-service
