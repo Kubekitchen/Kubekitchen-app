@@ -11,3 +11,5 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+
+// pipeline check for menu-service
