@@ -253,32 +253,31 @@ jobs:
 
       - name: Update image tag in Helm values
         run: |
-          # ✅ Correct path — values.yaml lives inside kubekitchen-helm/
           cd Kubekitchen-GitOps/kubekitchen-helm
 
           echo "📂 Working directory: $(pwd)"
 
-          # Safety check — fail early with clear message
+          # Safety check
           if [ ! -f "values.yaml" ]; then
             echo "❌ ERROR: values.yaml not found at $(pwd)"
-            echo "📂 Files present:"
             ls -la
             exit 1
           fi
 
+          # ✅ Show current tag before update
           echo "📄 Before update:"
-          grep -A 2 "restaurant-service:" values.yaml
+          yq e '.["restaurant-service"].image.tag' values.yaml
 
-          # ✅ Correct yq path for hyphenated key
-          yq e '["restaurant-service"].image.tag = "${{ needs.build-and-push.outputs.image_tag }}"' \
+          # ✅ Correct yq syntax with leading dot
+          yq e '.["restaurant-service"].image.tag = "${{ needs.build-and-push.outputs.image_tag }}"' \
             -i values.yaml
 
+          # ✅ Verify update worked
           echo "✅ After update:"
-          grep -A 2 "restaurant-service:" values.yaml
+          yq e '.["restaurant-service"].image.tag' values.yaml
 
       - name: Commit and push to Helm repo
         run: |
-          # ✅ Git commands run from repo root, NOT from kubekitchen-helm/
           cd Kubekitchen-GitOps
 
           git config user.name "github-actions[bot]"
@@ -287,20 +286,18 @@ jobs:
           git add kubekitchen-helm/values.yaml
 
           if git diff --staged --quiet; then
-            echo "⚠️ No changes to commit — tag may already be up to date"
+            echo "⚠️ No changes to commit"
             exit 0
           fi
 
-          echo "📝 Committing changes:"
+          echo "📝 Changes being committed:"
           git diff --staged
 
           git commit -m "ci(restaurant-service): image → ${{ needs.build-and-push.outputs.image_tag }}"
 
-          # ✅ Retry push with rebase on conflict
           for i in 1 2 3 4 5; do
             echo "🚀 Push attempt $i/5..."
-            git push && echo "✅ Push successful!" && break
-            echo "⚠️ Push failed, rebasing and retrying..."
+            git push && echo "✅ Pushed!" && break
             git pull --rebase origin main
             sleep $((i * 2))
           done
