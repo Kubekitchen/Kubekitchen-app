@@ -1,4 +1,4 @@
-# ─── Menu Service CI/CD Pipeline ─────────────────────────────────────────────
+# ─── Menu Service CI/CD Pipeline ───────────────────────────────────────────
 name: CI/CD – Menu Service
 
 on:
@@ -171,27 +171,62 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Clone Helm repository
-        run: git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
+        run: |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
 
       - name: Install yq
         run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+          yq --version
 
       - name: Update image tag in Helm values
         run: |
-          cd Kubekitchen-GitOps
-          yq e ".menuService.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
+          cd Kubekitchen-GitOps/kubekitchen-helm
+
+          echo "📂 Working directory: $(pwd)"
+
+          if [ ! -f "values.yaml" ]; then
+            echo "❌ ERROR: values.yaml not found at $(pwd)"
+            ls -la
+            exit 1
+          fi
+
+          echo "📄 Before update:"
+          yq e '.["menu-service"].image.tag' values.yaml
+
+          yq e '.["menu-service"].image.tag = "${{ needs.build-and-push.outputs.image_tag }}"' \
+            -i values.yaml
+
+          echo "✅ After update:"
+          yq e '.["menu-service"].image.tag' values.yaml
 
       - name: Commit and push to Helm repo
         run: |
           cd Kubekitchen-GitOps
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          if git diff --staged --quiet; then echo "No changes"; exit 0; fi
+
+          git add kubekitchen-helm/values.yaml
+
+          if git diff --staged --quiet; then
+            echo "⚠️ No changes to commit"
+            exit 0
+          fi
+
+          echo "📝 Changes being committed:"
+          git diff --staged
+
           git commit -m "ci(menu-service): image → ${{ needs.build-and-push.outputs.image_tag }}"
-          for i in 1 2 3 4 5; do git push && break; git pull --rebase origin main; sleep $((i * 2)); done
+
+          for i in 1 2 3 4 5; do
+            echo "🚀 Push attempt $i/5..."
+            git push && echo "✅ Pushed!" && break
+            git pull --rebase origin main
+            sleep $((i * 2))
+          done
 
       - name: Send Success Email
         if: success()
@@ -205,9 +240,15 @@ jobs:
           to: ${{ secrets.ALERT_EMAIL }}
           from: KubeKitchen CD Pipeline
           body: |
+            ════════════════════════════════════════════════════
+            KubeKitchen CD — Deployment Triggered
+            ════════════════════════════════════════════════════
+
             Service   : menu-service
             New Image : ${{ needs.build-and-push.outputs.image_tag }}
+
             ArgoCD will auto-sync to cluster within 3 minutes.
+            ════════════════════════════════════════════════════
 
       - name: Send Failure Email
         if: failure()
@@ -223,5 +264,7 @@ jobs:
           body: |
             CD manifest update FAILED for: menu-service
 
-            Image Tag: ${{ needs.build-and-push.outputs.image_tag }}
+            Image Tag : ${{ needs.build-and-push.outputs.image_tag }}
+            Author    : ${{ github.actor }}
+
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
