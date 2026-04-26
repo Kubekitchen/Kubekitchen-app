@@ -25,23 +25,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ✅ Required for Semgrep to track baselines
 
       - name: Run Semgrep SAST scan
         uses: semgrep/semgrep-action@v1
         with:
-          config: >-
-            p/javascript
-            p/nodejs
-            p/security-audit
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}  # ✅ Logs into Semgrep Cloud
+          # Rules are configured at: https://semgrep.dev/orgs/-/policies
+          generateSarif: true  # ✅ Also generates SARIF for GitHub
         continue-on-error: true
+
+      - name: Upload Semgrep SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep-${{ env.SERVICE_NAME }}
 
       - name: Run Trivy dependency scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-ref: '${{ github.workspace }}/services/frontend'  # ✅ Correct path
+          scan-ref: '${{ github.workspace }}/services/${{ env.SERVICE_NAME }}'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
@@ -54,11 +60,11 @@ jobs:
           server_port: 465
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          subject: "KubeKitchen CI Failed — Security Scan (frontend)"
+          subject: "KubeKitchen CI Failed — Security Scan (${{ env.SERVICE_NAME }})"
           to: ${{ secrets.ALERT_EMAIL }}
           from: KubeKitchen CI Pipeline
           body: |
-            Security scan FAILED for: frontend
+            Security scan FAILED for: ${{ env.SERVICE_NAME }}
 
             Branch : ${{ github.ref_name }}
             Commit : ${{ github.sha }}
