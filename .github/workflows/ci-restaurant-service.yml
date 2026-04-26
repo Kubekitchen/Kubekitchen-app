@@ -164,6 +164,76 @@ jobs:
       - name: Log Approval
         run: echo "Approved by ${{ github.actor }} at $(date -u)"
 
+  # deploy:
+  #   name: "4. 🚀 Update Helm Repo"
+  #   runs-on: ubuntu-latest
+  #   needs: [build-and-push, approval]
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Clone Helm repository
+  #       run: git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
+
+  #     - name: Install yq
+  #       run: |
+  #         sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+  #         sudo chmod +x /usr/local/bin/yq
+
+  #     - name: Update image tag in Helm values
+  #       run: |
+  #         cd Kubekitchen-GitOps
+  #         yq e ".restaurantService.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
+
+  #     - name: Commit and push to Helm repo
+  #       run: |
+  #         cd Kubekitchen-GitOps
+  #         git config user.name "github-actions[bot]"
+  #         git config user.email "github-actions[bot]@users.noreply.github.com"
+  #         git add .
+  #         if git diff --staged --quiet; then echo "No changes"; exit 0; fi
+  #         git commit -m "ci(restaurant-service): image → ${{ needs.build-and-push.outputs.image_tag }}"
+  #         for i in 1 2 3 4 5; do git push && break; git pull --rebase origin main; sleep $((i * 2)); done
+
+  #     - name: Send Success Email
+  #       if: success()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         username: ${{ secrets.SMTP_USERNAME }}
+  #         password: ${{ secrets.SMTP_PASSWORD }}
+  #         subject: "KubeKitchen CD ✅ — restaurant-service deploying ${{ needs.build-and-push.outputs.image_tag }}"
+  #         to: ${{ secrets.ALERT_EMAIL }}
+  #         from: KubeKitchen CD Pipeline
+  #         body: |
+  #           ════════════════════════════════════════════════════
+  #           KubeKitchen CD — Deployment Triggered
+  #           ════════════════════════════════════════════════════
+
+  #           Service   : restaurant-service
+  #           New Image : ${{ needs.build-and-push.outputs.image_tag }}
+
+  #           ArgoCD will auto-sync to cluster within 3 minutes.
+  #           ════════════════════════════════════════════════════
+
+  #     - name: Send Failure Email
+  #       if: failure()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         username: ${{ secrets.SMTP_USERNAME }}
+  #         password: ${{ secrets.SMTP_PASSWORD }}
+  #         subject: "KubeKitchen CD Failed — restaurant-service"
+  #         to: ${{ secrets.ALERT_EMAIL }}
+  #         from: KubeKitchen CD Pipeline
+  #         body: |
+  #           CD manifest update FAILED for: restaurant-service
+
+  #           Image Tag: ${{ needs.build-and-push.outputs.image_tag }}
+  #           Author   : ${{ github.actor }}
+
+  #           Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
   deploy:
     name: "4. 🚀 Update Helm Repo"
     runs-on: ubuntu-latest
@@ -171,27 +241,69 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Clone Helm repository
-        run: git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
+        run: |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
 
       - name: Install yq
         run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+          yq --version
 
       - name: Update image tag in Helm values
         run: |
-          cd Kubekitchen-GitOps
-          yq e ".restaurantService.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
+          # ✅ Correct path — values.yaml lives inside kubekitchen-helm/
+          cd Kubekitchen-GitOps/kubekitchen-helm
+
+          echo "📂 Working directory: $(pwd)"
+
+          # Safety check — fail early with clear message
+          if [ ! -f "values.yaml" ]; then
+            echo "❌ ERROR: values.yaml not found at $(pwd)"
+            echo "📂 Files present:"
+            ls -la
+            exit 1
+          fi
+
+          echo "📄 Before update:"
+          grep -A 2 "restaurant-service:" values.yaml
+
+          # ✅ Correct yq path for hyphenated key
+          yq e '["restaurant-service"].image.tag = "${{ needs.build-and-push.outputs.image_tag }}"' \
+            -i values.yaml
+
+          echo "✅ After update:"
+          grep -A 2 "restaurant-service:" values.yaml
 
       - name: Commit and push to Helm repo
         run: |
+          # ✅ Git commands run from repo root, NOT from kubekitchen-helm/
           cd Kubekitchen-GitOps
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          if git diff --staged --quiet; then echo "No changes"; exit 0; fi
+
+          git add kubekitchen-helm/values.yaml
+
+          if git diff --staged --quiet; then
+            echo "⚠️ No changes to commit — tag may already be up to date"
+            exit 0
+          fi
+
+          echo "📝 Committing changes:"
+          git diff --staged
+
           git commit -m "ci(restaurant-service): image → ${{ needs.build-and-push.outputs.image_tag }}"
-          for i in 1 2 3 4 5; do git push && break; git pull --rebase origin main; sleep $((i * 2)); done
+
+          # ✅ Retry push with rebase on conflict
+          for i in 1 2 3 4 5; do
+            echo "🚀 Push attempt $i/5..."
+            git push && echo "✅ Push successful!" && break
+            echo "⚠️ Push failed, rebasing and retrying..."
+            git pull --rebase origin main
+            sleep $((i * 2))
+          done
 
       - name: Send Success Email
         if: success()
@@ -229,7 +341,7 @@ jobs:
           body: |
             CD manifest update FAILED for: restaurant-service
 
-            Image Tag: ${{ needs.build-and-push.outputs.image_tag }}
-            Author   : ${{ github.actor }}
+            Image Tag : ${{ needs.build-and-push.outputs.image_tag }}
+            Author    : ${{ github.actor }}
 
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
