@@ -1,44 +1,51 @@
-# ─── Frontend CI/CD Pipeline ─────────────────────────────────────────────────
+# ─── Frontend CI/CD Pipeline ───────────────────────────────────────────────
 name: CI/CD – Frontend
 
 on:
   push:
     branches: [main, feature/*]
     paths:
-      - 'services/frontend/**'
+      - 'frontend/**'
       - '.github/workflows/ci-frontend.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'services/frontend/**'
+      - 'frontend/**'
 
 env:
   SERVICE_NAME: frontend
   IMAGE_NAME: secretpower/kubekitchen-frontend
-  DOCKERFILE_PATH: services/frontend/Dockerfile
-  CONTEXT_PATH: services/frontend
+  DOCKERFILE_PATH: frontend/Dockerfile
+  CONTEXT_PATH: frontend
 
 jobs:
   security-scan:
     name: "1. 🔒 Security Scan"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run Semgrep SAST scan
         uses: semgrep/semgrep-action@v1
         with:
-          config: "p/javascript p/react p/security-audit"
+          config: >-
+            p/javascript
+            p/nodejs
+            p/security-audit
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
         continue-on-error: true
+
       - name: Run Trivy dependency scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-ref: './services/frontend'
+          scan-ref: './frontend'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
+
       - name: Send Email on Failure
         if: failure()
         uses: dawidd6/action-send-mail@v3
@@ -52,7 +59,11 @@ jobs:
           from: KubeKitchen CI Pipeline
           body: |
             Security scan FAILED for: frontend
-            Branch: ${{ github.ref_name }} | Commit: ${{ github.sha }} | Author: ${{ github.actor }}
+
+            Branch : ${{ github.ref_name }}
+            Commit : ${{ github.sha }}
+            Author : ${{ github.actor }}
+
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   build-and-push:
@@ -62,18 +73,29 @@ jobs:
     outputs:
       image_tag: ${{ steps.version.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Generate semantic version
         id: version
-        run: echo "tag=v1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
-      - uses: docker/login-action@v3
+        run: |
+          TAG="v1.0.${{ github.run_number }}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} \
-            -t ${{ env.IMAGE_NAME }}:dev-latest -f ${{ env.DOCKERFILE_PATH }} ${{ env.CONTEXT_PATH }}
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} \
+            -t ${{ env.IMAGE_NAME }}:dev-latest \
+            -f ${{ env.DOCKERFILE_PATH }} \
+            ${{ env.CONTEXT_PATH }}
+
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -81,11 +103,13 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
+
       - name: Push Docker image
         if: github.event_name != 'pull_request'
         run: |
           docker push ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
           docker push ${{ env.IMAGE_NAME }}:dev-latest
+
       - name: Send Email on Failure
         if: failure()
         uses: dawidd6/action-send-mail@v3
@@ -99,7 +123,11 @@ jobs:
           from: KubeKitchen CI Pipeline
           body: |
             Docker build/push FAILED for: frontend
-            Branch: ${{ github.ref_name }} | Author: ${{ github.actor }}
+
+            Branch : ${{ github.ref_name }}
+            Commit : ${{ github.sha }}
+            Author : ${{ github.actor }}
+
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   approval:
@@ -120,10 +148,21 @@ jobs:
           to: ${{ secrets.ALERT_EMAIL }}
           from: KubeKitchen CD Pipeline
           body: |
+            ════════════════════════════════════════════════════════════
             KubeKitchen — DEPLOYMENT APPROVAL REQUIRED
-            Service: frontend | Tag: ${{ needs.build-and-push.outputs.image_tag }}
-            Approve: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      - run: echo "Approved by ${{ github.actor }} at $(date -u)"
+            ════════════════════════════════════════════════════════════
+
+            Service     : frontend
+            Image Tag   : ${{ needs.build-and-push.outputs.image_tag }}
+            Triggered By: ${{ github.actor }}
+            Branch      : ${{ github.ref_name }}
+
+            TO APPROVE:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ════════════════════════════════════════════════════════════
+
+      - name: Log Approval
+        run: echo "Approved by ${{ github.actor }} at $(date -u)"
 
   deploy:
     name: "4. 🚀 Update Helm Repo"
@@ -131,20 +170,66 @@ jobs:
     needs: [build-and-push, approval]
     if: github.ref == 'refs/heads/main'
     steps:
-      - run: git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
+      - name: Clone Helm repository
+        run: |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Kubekitchen/Kubekitchen-GitOps.git
+
       - name: Install yq
         run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
-      - name: Update and push
+          yq --version
+
+      - name: Update image tag in Helm values
+        run: |
+          cd Kubekitchen-GitOps/kubekitchen-helm
+
+          echo "📂 Working directory: $(pwd)"
+
+          if [ ! -f "values.yaml" ]; then
+            echo "❌ ERROR: values.yaml not found at $(pwd)"
+            ls -la
+            exit 1
+          fi
+
+          echo "📄 Before update:"
+          yq e '.["frontend"].image.tag' values.yaml
+
+          # ✅ frontend key has no hyphens but keeping
+          # bracket notation consistent across all pipelines
+          yq e '.["frontend"].image.tag = "${{ needs.build-and-push.outputs.image_tag }}"' \
+            -i values.yaml
+
+          echo "✅ After update:"
+          yq e '.["frontend"].image.tag' values.yaml
+
+      - name: Commit and push to Helm repo
         run: |
           cd Kubekitchen-GitOps
-          yq e ".frontend.image.tag = \"${{ needs.build-and-push.outputs.image_tag }}\"" -i values.yaml
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add . && git diff --staged --quiet && exit 0
+
+          git add kubekitchen-helm/values.yaml
+
+          if git diff --staged --quiet; then
+            echo "⚠️ No changes to commit"
+            exit 0
+          fi
+
+          echo "📝 Changes being committed:"
+          git diff --staged
+
           git commit -m "ci(frontend): image → ${{ needs.build-and-push.outputs.image_tag }}"
-          for i in 1 2 3 4 5; do git push && break; git pull --rebase origin main; sleep $((i*2)); done
+
+          for i in 1 2 3 4 5; do
+            echo "🚀 Push attempt $i/5..."
+            git push && echo "✅ Pushed!" && break
+            git pull --rebase origin main
+            sleep $((i * 2))
+          done
+
       - name: Send Success Email
         if: success()
         uses: dawidd6/action-send-mail@v3
@@ -156,7 +241,17 @@ jobs:
           subject: "KubeKitchen CD ✅ — frontend deploying ${{ needs.build-and-push.outputs.image_tag }}"
           to: ${{ secrets.ALERT_EMAIL }}
           from: KubeKitchen CD Pipeline
-          body: "Service: frontend | Image: ${{ needs.build-and-push.outputs.image_tag }} | ArgoCD will auto-sync."
+          body: |
+            ════════════════════════════════════════════════════
+            KubeKitchen CD — Deployment Triggered
+            ════════════════════════════════════════════════════
+
+            Service   : frontend
+            New Image : ${{ needs.build-and-push.outputs.image_tag }}
+
+            ArgoCD will auto-sync to cluster within 3 minutes.
+            ════════════════════════════════════════════════════
+
       - name: Send Failure Email
         if: failure()
         uses: dawidd6/action-send-mail@v3
@@ -168,4 +263,10 @@ jobs:
           subject: "KubeKitchen CD Failed — frontend"
           to: ${{ secrets.ALERT_EMAIL }}
           from: KubeKitchen CD Pipeline
-          body: "CD FAILED for frontend | Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body: |
+            CD manifest update FAILED for: frontend
+
+            Image Tag : ${{ needs.build-and-push.outputs.image_tag }}
+            Author    : ${{ github.actor }}
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
